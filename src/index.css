@@ -2,41 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Saathiya Design System - Calming and trustworthy mental wellness colors */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    /* Calming background palette */
+    --background: 210 20% 98%;
+    --foreground: 215 25% 27%;
+    
+    /* Card system with soft, welcoming tones */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 215 25% 27%;
+    
+    /* Popover elements */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 27%;
+    
+    /* Primary - Trustworthy blue for main actions */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 217 91% 55%;
+    
+    /* Secondary - Soft supportive tones */
+    --secondary: 210 17% 95%;
+    --secondary-foreground: 215 25% 27%;
+    
+    /* Muted elements */
+    --muted: 210 17% 95%;
+    --muted-foreground: 215 13% 55%;
+    
+    /* Accent - Warm, encouraging orange */
+    --accent: 43 96% 56%;
+    --accent-foreground: 215 25% 27%;
+    
+    /* Success - Calming green for positive states */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    
+    /* Warning - Gentle orange for alerts */
+    --warning: 43 96% 56%;
+    --warning-foreground: 215 25% 27%;
+    
+    /* Destructive - Soft red for critical actions */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Borders and inputs */
+    --border: 210 17% 89%;
+    --input: 210 17% 89%;
+    --ring: 217 91% 60%;
+    
+    /* Wellness-specific colors */
+    --wellness-calm: 197 71% 73%;
+    --wellness-energy: 142 71% 45%;
+    --wellness-focus: 43 96% 56%;
+    --wellness-rest: 259 94% 78%;
+    
+    /* Gradients for hero sections */
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 60%), hsl(197 71% 73%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 17% 98%));
+    --gradient-wellness: linear-gradient(120deg, hsl(197 71% 73%), hsl(142 71% 45%));
+    
+    /* Shadows for depth */
+    --shadow-soft: 0 2px 8px hsl(215 25% 27% / 0.08);
+    --shadow-medium: 0 4px 16px hsl(215 25% 27% / 0.12);
+    --shadow-large: 0 8px 32px hsl(215 25% 27% / 0.16);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 
@@ -56,33 +92,54 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Dark mode with soothing, low-contrast colors */
+    --background: 215 28% 9%;
+    --foreground: 210 17% 95%;
+    
+    --card: 215 25% 12%;
+    --card-foreground: 210 17% 95%;
+    
+    --popover: 215 25% 12%;
+    --popover-foreground: 210 17% 95%;
+    
+    --primary: 217 91% 65%;
+    --primary-foreground: 215 28% 9%;
+    --primary-hover: 217 91% 60%;
+    
+    --secondary: 215 25% 15%;
+    --secondary-foreground: 210 17% 90%;
+    
+    --muted: 215 25% 15%;
+    --muted-foreground: 215 13% 65%;
+    
+    --accent: 43 96% 60%;
+    --accent-foreground: 215 28% 9%;
+    
+    --success: 142 71% 50%;
+    --success-foreground: 215 28% 9%;
+    
+    --warning: 43 96% 60%;
+    --warning-foreground: 215 28% 9%;
+    
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 215 28% 9%;
+    
+    --border: 215 25% 18%;
+    --input: 215 25% 18%;
+    --ring: 217 91% 65%;
+    
+    --wellness-calm: 197 71% 68%;
+    --wellness-energy: 142 71% 50%;
+    --wellness-focus: 43 96% 60%;
+    --wellness-rest: 259 94% 80%;
+    
+    --gradient-hero: linear-gradient(135deg, hsl(217 91% 65%), hsl(197 71% 68%));
+    --gradient-card: linear-gradient(145deg, hsl(215 25% 12%), hsl(215 25% 15%));
+    --gradient-wellness: linear-gradient(120deg, hsl(197 71% 68%), hsl(142 71% 50%));
+    
+    --shadow-soft: 0 2px 8px hsl(0 0% 0% / 0.3);
+    --shadow-medium: 0 4px 16px hsl(0 0% 0% / 0.4);
+    --shadow-large: 0 8px 32px hsl(0 0% 0% / 0.5);
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -100,6 +157,56 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  
+  /* Custom scrollbar for wellness feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/30 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/50;
+  }
+}
+
+@layer components {
+  /* Wellness-specific component classes */
+  .wellness-gradient {
+    background: var(--gradient-wellness);
+  }
+  
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+  
+  .card-gradient {
+    background: var(--gradient-card);
+  }
+  
+  .shadow-wellness {
+    box-shadow: var(--shadow-soft);
+  }
+  
+  .transition-wellness {
+    transition: var(--transition-smooth);
+  }
+  
+  .mood-emoji {
+    @apply text-2xl transition-all duration-300 hover:scale-110 cursor-pointer;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
