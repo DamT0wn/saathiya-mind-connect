@@ -63,7 +63,7 @@ export function PrivacySection() {
             Your Safety & Privacy Matter Most
           </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            We've built Saathiya with privacy and safety as core principles. Your mental health journey 
+            We've built Saathi with privacy and safety as core principles. Your mental health journey 
             should be yours alone, and we ensure it stays that way.
           </p>
         </div>

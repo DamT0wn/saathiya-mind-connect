@@ -33,12 +33,13 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
     { id: 'crisis', label: 'Crisis Support', icon: AlertCircle, route: '/crisis-support' },
     { id: 'mood', label: 'Mood Analytics', icon: TrendingUp, route: '/mood-dashboard' },
     { id: 'learning', label: 'Resources', icon: BookOpen, route: '/resources' },
-    { id: 'groups', label: 'Peer Groups', icon: Users, badge: 'SOON' },
+    { id: 'groups', label: 'Peer Groups', icon: Users, route: 'https://discord.gg/67meY4hr' },
   ];
 
   const handleItemClick = (item: any) => {
-    if (item.badge === 'SOON') {
-      // Handle coming soon features
+    if (item.route.startsWith('https://')) {
+      // Handle external links
+      window.open(item.route, '_blank');
       return;
     }
 
@@ -81,7 +82,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
               <Brain className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Saathiya</h1>
+              <h1 className="text-xl font-bold text-gray-900">Saathi</h1>
               <p className="text-xs text-gray-500">Mind Connect</p>
             </div>
           </div>

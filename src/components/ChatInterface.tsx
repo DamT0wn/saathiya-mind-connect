@@ -300,13 +300,13 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
                   <div className="relative">
                     <img 
                       src={chatbotAvatar} 
-                      alt="Saathiya AI" 
+                      alt="Saathi AI" 
                       className="w-10 h-10 rounded-full ring-2 ring-white/50"
                     />
                     <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-success rounded-full border-2 border-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white">Saathiya AI</h3>
+                    <h3 className="font-semibold text-white">Saathi AI</h3>
                     <p className="text-sm text-white/80">Your wellness companion • Online</p>
                   </div>
                 </div>

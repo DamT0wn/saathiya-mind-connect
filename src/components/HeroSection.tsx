@@ -20,7 +20,7 @@ export function HeroSection() {
           {/* Main Heading */}
           <div className="space-y-4">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white text-balance">
-              Aapka Saathiya<br />
+              Aapka Saathi<br />
               <span className="text-wellness-calm">Aapke Saath</span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto text-balance">

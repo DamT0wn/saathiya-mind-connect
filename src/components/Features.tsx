@@ -53,11 +53,11 @@ const features = [
   {
     icon: Users,
     title: "Peer Micro-Groups",
-    description: "Small, supportive communities for shared experiences and peer-to-peer mental health support with professional moderation.",
-    badge: "Coming Soon",
+    description: "Join our supportive Discord community for shared experiences and peer-to-peer mental health support with professional moderation.",
+    badge: "Join Now",
     color: "bg-wellness-rest",
-    status: "coming-soon",
-    route: null
+    status: "available",
+    route: "https://discord.gg/67meY4hr"
   }
 ];
 
@@ -68,7 +68,7 @@ interface FeaturesProps {
 export function Features({ onFeatureClick }: FeaturesProps) {
   const navigate = useNavigate();
 
-  const handleFeatureClick = (feature: any) => {
+  const handleFeatureClick = (feature: typeof features[number]) => {
     if (feature.status === 'available') {
       if (feature.title === 'Floating Chatbot') {
         // Scroll to chatbot or trigger it
@@ -77,7 +77,11 @@ export function Features({ onFeatureClick }: FeaturesProps) {
           (chatButton as HTMLElement).click();
         }
       } else if (feature.route) {
-        navigate(feature.route);
+        if (typeof feature.route === 'string' && feature.route.startsWith('https://')) {
+          window.open(feature.route, '_blank');
+        } else {
+          navigate(feature.route);
+        }
       } else if (onFeatureClick) {
         onFeatureClick(feature.title.toLowerCase().replace(/\s+/g, '-'));
       }

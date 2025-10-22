@@ -28,7 +28,7 @@ const initialState: ChatState = {
   messages: [
     {
       id: '1',
-      content: "Namaste! I'm your Saathiya 🙏 I'm here to listen and support you. How are you feeling today?",
+      content: "Namaste! I'm your Saathi 🙏 I'm here to listen and support you. How are you feeling today?",
       sender: 'bot',
       timestamp: new Date(),
       type: 'text'
@@ -156,7 +156,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   // Load saved state on mount
   useEffect(() => {
-    const savedState = localStorage.getItem('saathiya-chat-state');
+    const savedState = localStorage.getItem('saathi-chat-state');
     if (savedState) {
       try {
         const parsedState = JSON.parse(savedState);
@@ -174,7 +174,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
   // Save state to localStorage on changes
   useEffect(() => {
-    localStorage.setItem('saathiya-chat-state', JSON.stringify(state));
+    localStorage.setItem('saathi-chat-state', JSON.stringify(state));
   }, [state]);
 
   const addMessage = (message: Omit<Message, 'id' | 'timestamp'>) => {
