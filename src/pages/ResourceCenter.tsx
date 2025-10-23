@@ -212,7 +212,7 @@ const ResourceCenter = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResourceLibrary onClose={() => {}} />
+                <ResourceLibrary onClose={() => {}} modal={false} />
               </CardContent>
             </Card>
           </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,46 +43,59 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
 
   // Maximized view - full screen overlay
   if (isMaximized) {
+    // Lock background scroll while maximized
+    useEffect(() => {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          handleMinimize();
+        }
+      };
+      window.addEventListener('keydown', onKey);
+      return () => {
+        document.body.style.overflow = prev;
+        window.removeEventListener('keydown', onKey);
+      };
+    }, []);
+
     return (
-      <div className="fixed inset-0 z-50 bg-background">
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary to-wellness-calm">
-            <div className="flex items-center space-x-3">
-              <img 
-                src={chatbotAvatar} 
-                alt="Saathiya AI" 
-                className="w-8 h-8 rounded-full"
-              />
-              <div>
-                <h3 className="font-semibold text-white">Saathiya AI Chat</h3>
-                <p className="text-sm text-white/80">Full Screen Mode</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                onClick={handleMinimize}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-              >
-                <Minimize2 className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={handleClose}
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+      <div className="fixed inset-0 z-50 bg-background flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary to-wellness-calm">
+          <div className="flex items-center space-x-3">
+            <img 
+              src={chatbotAvatar} 
+              alt="Saathiya AI" 
+              className="w-8 h-8 rounded-full"
+            />
+            <div>
+              <h3 className="font-semibold text-white">Saathiya AI Chat</h3>
+              <p className="text-sm text-white/80">Full Screen Mode</p>
             </div>
           </div>
-          
-          {/* Chat Content */}
-          <div className="flex-1 overflow-hidden">
-            <ChatInterface isFullScreen={true} />
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={handleMinimize}
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+            >
+              <Minimize2 className="h-4 w-4" />
+            </Button>
+            <Button
+              onClick={handleClose}
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
+        </div>
+        {/* Chat Content (always visible and interactive) */}
+        <div className="flex-1 min-h-0 flex flex-col">
+          <ChatInterface isFullScreen={true} />
         </div>
       </div>
     );

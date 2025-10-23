@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Phone, Users, Video, Download, ExternalLink } from 'lucide-react';
+import { useMemo } from 'react';
 
 interface Resource {
   id: string;
@@ -120,20 +121,46 @@ interface ResourceLibraryProps {
   onClose: () => void;
   userMood?: string;
   userTopics?: string[];
+  modal?: boolean; // if false, renders inline without overlay
 }
 
-export function ResourceLibrary({ onClose, userMood, userTopics = [] }: ResourceLibraryProps) {
-  const getRelevantResources = () => {
-    if (!userMood && userTopics.length === 0) return mentalHealthResources;
-    
+export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = true }: ResourceLibraryProps) {
+  // Normalize matching across moods/topics with simple aliases
+  const moodAliases: Record<string, string[]> = {
+    anxious: ['anxiety', 'panic', 'worry'],
+    anxiety: ['anxious', 'panic', 'worry'],
+    stressed: ['stress', 'overwhelm', 'burnout'],
+    stress: ['stressed', 'overwhelm', 'burnout'],
+    lonely: ['loneliness', 'isolation'],
+    loneliness: ['lonely', 'isolation'],
+    sad: ['depression', 'low-mood'],
+    depression: ['sad', 'low-mood'],
+    sleep: ['insomnia', 'rest', 'sleep'],
+  };
+
+  const norm = (s?: string) => (s || '').toLowerCase().trim();
+  const tagMatches = (tag: string, needle: string) => {
+    const t = norm(tag);
+    const n = norm(needle);
+    if (!t || !n) return false;
+    if (t.includes(n) || n.includes(t)) return true;
+    const aliases = moodAliases[n] || [];
+    return aliases.some(a => t.includes(a));
+  };
+
+  const getRelevantResources = useMemo(() => {
+    const mood = norm(userMood);
+    const topics = (userTopics || []).map(norm).filter(Boolean);
+    if (!mood && topics.length === 0) return mentalHealthResources;
+
     return mentalHealthResources.filter(resource => {
-      const moodMatch = userMood ? resource.tags.includes(userMood.toLowerCase()) : false;
-      const topicMatch = userTopics.some(topic => 
-        resource.tags.some(tag => tag.includes(topic.toLowerCase()))
-      );
+      const moodMatch = mood ? resource.tags.some(tag => tagMatches(tag, mood)) : false;
+      const topicMatch = topics.length > 0
+        ? topics.some(topic => resource.tags.some(tag => tagMatches(tag, topic)))
+        : false;
       return moodMatch || topicMatch;
     });
-  };
+  }, [userMood, userTopics]);
 
   const getIcon = (category: Resource['category']) => {
     switch (category) {
@@ -155,23 +182,25 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [] }: Resource
     }
   };
 
-  const relevantResources = getRelevantResources();
+  const relevantResources = getRelevantResources;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-2xl font-semibold">Mental Health Resources</h2>
-              <p className="text-muted-foreground">
-                Curated resources to support your mental wellness journey
-              </p>
-            </div>
-            <Button onClick={onClose} variant="outline">Close</Button>
-          </div>
+  const header = (
+    <div className="flex justify-between items-center mb-6">
+      <div>
+        <h2 className="text-2xl font-semibold">Mental Health Resources</h2>
+        <p className="text-muted-foreground">
+          Curated resources to support your mental wellness journey
+        </p>
+      </div>
+      {modal && (
+        <Button onClick={onClose} variant="outline">Close</Button>
+      )}
+    </div>
+  );
 
-          <Tabs defaultValue="resources" className="space-y-4">
+  const body = (
+    <>
+      <Tabs defaultValue="resources" className="space-y-4">
             <TabsList>
               <TabsTrigger value="resources">Resources</TabsTrigger>
               <TabsTrigger value="crisis">Crisis Support</TabsTrigger>
@@ -294,14 +323,17 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [] }: Resource
                               {resource.description}
                             </p>
                             <div className="flex gap-1 mt-2">
-                              {resource.tags.filter(tag => 
-                                userMood?.toLowerCase().includes(tag) || 
-                                userTopics.some(topic => topic.toLowerCase().includes(tag))
-                              ).map((tag) => (
-                                <Badge key={tag} variant="default" className="text-xs">
-                                  {tag}
-                                </Badge>
-                              ))}
+                              {resource.tags
+                                .filter(tag => {
+                                  const mood = norm(userMood);
+                                  const topics = (userTopics || []).map(norm);
+                                  return (mood && tagMatches(tag, mood)) || topics.some(t => tagMatches(tag, t));
+                                })
+                                .map((tag) => (
+                                  <Badge key={tag} variant="default" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
                             </div>
                           </div>
                         </div>
@@ -317,7 +349,26 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [] }: Resource
                 </div>
               )}
             </TabsContent>
-          </Tabs>
+      </Tabs>
+    </>
+  );
+
+  if (!modal) {
+    // Inline rendering without overlay or close button
+    return (
+      <div className="w-full">
+        {header}
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <Card className="w-full max-w-4xl max-h:[90vh] overflow-hidden">
+        <div className="p-6">
+          {header}
+          {body}
         </div>
       </Card>
     </div>

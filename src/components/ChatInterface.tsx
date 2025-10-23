@@ -277,22 +277,24 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
   }
 
   return (
-    <section className="py-20 bg-background" ref={chatContainerRef}>
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Start Your Wellness Journey
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Experience our AI companion that understands, listens, and provides personalized support
-          </p>
-        </div>
+    <section className={isFullScreen ? "h-full bg-background" : "py-20 bg-background"} ref={chatContainerRef}>
+      <div className={isFullScreen ? "container mx-auto px-4 h-full" : "container mx-auto px-4"}>
+        {!isFullScreen && (
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Start Your Wellness Journey
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Experience our AI companion that understands, listens, and provides personalized support
+            </p>
+          </div>
+        )}
 
-        <div className="max-w-4xl mx-auto chat-container"
+        <div className={isFullScreen ? "max-w-4xl mx-auto chat-container h-full" : "max-w-4xl mx-auto chat-container"}
              role="application" 
              aria-label="Mental health chatbot interface"
         >
-          <Card className="shadow-wellness border-0 overflow-hidden">
+          <Card className={`shadow-wellness border-0 overflow-hidden ${isFullScreen ? 'h-full flex flex-col' : ''}`}>
             {/* Chat Header */}
             <div className="p-4 border-b bg-gradient-to-r from-primary to-wellness-calm">
               <div className="flex items-center justify-between">
@@ -336,7 +338,7 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
 
             {/* Chat Messages */}
             <ScrollArea 
-              className={`p-4 ${isFullScreen ? 'h-[60vh] min-h-[400px]' : 'h-96'}`} 
+              className={`p-4 ${isFullScreen ? 'flex-1 min-h-0' : 'h-96'}`} 
               ref={scrollAreaRef}
             >
               <div className="space-y-4">

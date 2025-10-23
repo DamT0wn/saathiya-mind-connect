@@ -196,7 +196,7 @@ const MoodDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <MoodAnalytics onClose={() => {}} />
+                <MoodAnalytics onClose={() => {}} modal={false} />
               </CardContent>
             </Card>
           </div>
