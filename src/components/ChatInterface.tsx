@@ -34,6 +34,7 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
   const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -44,6 +45,25 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
       }
     }
   }, [state.messages]);
+
+  // Auto-scroll to chat container and focus on input when component mounts or when in full-screen
+  useEffect(() => {
+    if (isFullScreen || chatContainerRef.current) {
+      // Scroll to chat container
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      
+      // Focus on input after a short delay to ensure rendering is complete
+      const timer = setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isFullScreen]);
 
   // Update response generator context
   useEffect(() => {
@@ -493,6 +513,7 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
                   {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </Button>
                 <Input
+                  ref={inputRef}
                   placeholder="Type your message... (Hindi/English welcome)"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}

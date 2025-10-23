@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +11,6 @@ import {
   Bot,
   Sparkles
 } from 'lucide-react';
-import { ChatInterface } from './ChatInterface';
 import chatbotAvatar from '@/assets/chatbot-avatar.png';
 
 interface FloatingChatbotProps {
@@ -19,87 +19,20 @@ interface FloatingChatbotProps {
 
 export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
+  const navigate = useNavigate();
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleMaximize = () => {
-    setIsMaximized(true);
-    if (onMaximize) {
-      onMaximize();
-    }
-  };
-
-  const handleMinimize = () => {
-    setIsMaximized(false);
+  const handleStartChat = () => {
+    // Navigate to the AI chat page
+    navigate('/ai-chat');
   };
 
   const handleClose = () => {
     setIsOpen(false);
-    setIsMaximized(false);
   };
-
-  // Maximized view - full screen overlay
-  if (isMaximized) {
-    // Lock background scroll while maximized
-    useEffect(() => {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      const onKey = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          handleMinimize();
-        }
-      };
-      window.addEventListener('keydown', onKey);
-      return () => {
-        document.body.style.overflow = prev;
-        window.removeEventListener('keydown', onKey);
-      };
-    }, []);
-
-    return (
-      <div className="fixed inset-0 z-50 bg-background flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-primary to-wellness-calm">
-          <div className="flex items-center space-x-3">
-            <img 
-              src={chatbotAvatar} 
-              alt="Saathiya AI" 
-              className="w-8 h-8 rounded-full"
-            />
-            <div>
-              <h3 className="font-semibold text-white">Saathiya AI Chat</h3>
-              <p className="text-sm text-white/80">Full Screen Mode</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              onClick={handleMinimize}
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-white/20"
-            >
-              <Minimize2 className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={handleClose}
-              variant="ghost"
-              size="icon"
-              className="text-white hover:bg-white/20"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        {/* Chat Content (always visible and interactive) */}
-        <div className="flex-1 min-h-0 flex flex-col">
-          <ChatInterface isFullScreen={true} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="fixed bottom-6 right-6 z-40">
@@ -153,7 +86,7 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
             </div>
             <div className="flex items-center space-x-1">
               <Button
-                onClick={handleMaximize}
+                onClick={handleStartChat}
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-white hover:bg-white/20"
@@ -183,7 +116,7 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
             
             <div className="space-y-2">
               <Button 
-                onClick={handleMaximize}
+                onClick={handleStartChat}
                 className="w-full text-sm bg-gradient-to-r from-primary to-wellness-calm"
               >
                 Start Chatting
@@ -194,7 +127,7 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
                   variant="outline" 
                   size="sm" 
                   className="text-xs"
-                  onClick={handleMaximize}
+                  onClick={handleStartChat}
                 >
                   Mood Check
                 </Button>
@@ -202,7 +135,7 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
                   variant="outline" 
                   size="sm" 
                   className="text-xs"
-                  onClick={handleMaximize}
+                  onClick={handleStartChat}
                 >
                   Quick Help
                 </Button>
