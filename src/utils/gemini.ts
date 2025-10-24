@@ -47,20 +47,43 @@ function getChat(history: Message[]) {
  */
 export async function sendMessageToGemini(history: Message[], newMessage: string): Promise<string> {
   try {
-    if (!genAI || !(import.meta.env.VITE_GEMINI_API_KEY || '').trim()) {
+    const apiKey = (import.meta.env.VITE_GEMINI_API_KEY || '').trim();
+    console.log('🔑 API Key present:', !!apiKey);
+    console.log('🔑 API Key length:', apiKey.length);
+    
+    if (!apiKey) {
       throw new Error('Missing VITE_GEMINI_API_KEY. Please set it in .env.local and restart the dev server.');
     }
+    
+    console.log('📝 Sending message:', newMessage);
+    console.log('📚 History length:', history.length);
+    
     const chat = getChat(history);
+    console.log('💬 Chat created successfully');
     
     // Send message with correct parameter structure per @google/genai API
     const response = await chat.sendMessage({
       message: newMessage
     });
 
+    console.log('✅ Response received:', response);
+    console.log('📄 Response text:', response.text);
+
     // Extract text from response
-    return response.text.trim();
+    const resultText = response.text?.trim() || '';
+    
+    if (!resultText) {
+      throw new Error('Empty response from Gemini API');
+    }
+    
+    return resultText;
   } catch (error) {
-    console.error('Gemini API Error:', error);
+    console.error('❌ Gemini API Error:', error);
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    });
     throw error;
   }
 }
