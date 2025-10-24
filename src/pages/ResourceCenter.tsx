@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigation } from "@/components/Navigation";
 import { ResourceLibrary } from "@/components/ResourceLibrary";
 import { ExercisePlayer } from "@/components/ExercisePlayer";
+import { AdvancedMoodTracker } from "@/components/AdvancedMoodTracker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,15 +20,46 @@ import {
   Lightbulb,
   Users,
   Shield,
-  Zap
+  Zap,
+  Youtube
 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
+const VideoContent = [
+  {
+    id: 'mindful-for-stress',
+    title: 'Mindfulness for Students: Beating Exam Stress',
+    description: 'A 10-minute guide to quick stress relief, highly relevant for Indian students.',
+    youtubeId: '5bNI_NloNa8',
+    duration: '10 minutes',
+    tags: ['stress', 'exam', 'mindfulness']
+  },
+  {
+    id: 'mental-health-stigma',
+    title: 'Breaking the Stigma: Talking About Mental Health in India',
+    description: 'A short video addressing cultural barriers and encouraging dialogue.',
+    youtubeId: 'hXlFxceM4R8',
+    duration: '6 minutes',
+    tags: ['stigma', 'social', 'culture']
+  },
+  {
+    id: 'productivity-tips',
+    title: 'Focus & Productivity Hacks for Youth',
+    description: 'Simple and effective tips to improve focus on studies and goals.',
+    youtubeId: '3QIfkeA6HBY',
+    duration: '12 minutes',
+    tags: ['focus', 'productivity', 'goals']
+  }
+];
+
 const ResourceCenter = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('library');
+  const [activeTab, setActiveTab] = useState('videos');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
+  const [showMoodTracker, setShowMoodTracker] = useState(false);
+  const [showThoughtJournal, setShowThoughtJournal] = useState(false);
+  const [showSupportNetwork, setShowSupportNetwork] = useState(false);
 
   const handleSectionClick = (section: string) => {
     if (section === 'home') {
@@ -38,6 +70,10 @@ const ResourceCenter = () => {
         element.scrollIntoView({ behavior: 'smooth' });
       }
     }
+  };
+
+  const handleVideoClick = (youtubeId: string) => {
+    window.open(`https://www.youtube.com/watch?v=${youtubeId}`, '_blank', 'noopener');
   };
 
   const exerciseCategories = [
@@ -130,8 +166,9 @@ const ResourceCenter = () => {
   ];
 
   const tabs = [
-    { id: 'library', label: 'Resource Library', icon: BookOpen },
-    { id: 'exercises', label: 'Therapeutic Exercises', icon: Play },
+    { id: 'videos', label: 'Video Library', icon: Youtube },
+    { id: 'exercises', label: 'Skill Building Exercises', icon: Play },
+    { id: 'library', label: 'Educational Content', icon: BookOpen },
     { id: 'tools', label: 'Wellness Tools', icon: Zap }
   ];
 
@@ -202,13 +239,66 @@ const ResourceCenter = () => {
         </div>
 
         {/* Tab Content */}
+        {activeTab === 'videos' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Youtube className="h-5 w-5 text-destructive" />
+                  Bite-sized Educational Videos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {VideoContent.map((video) => (
+                    <div 
+                      key={video.id} 
+                      className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+                      onClick={() => handleVideoClick(video.youtubeId)}
+                    >
+                      {/* Video Thumbnail with Play Overlay */}
+                      <div className="aspect-video w-full relative mb-3 overflow-hidden rounded-lg">
+                        <img 
+                          src={`https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg`}
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <Play className="h-10 w-10 text-white fill-white opacity-90" />
+                        </div>
+                      </div>
+                      
+                      <h3 className="font-semibold mb-1 hover:text-primary transition-colors">{video.title}</h3>
+                      <p className="text-sm text-muted-foreground mb-3">{video.description}</p>
+                      
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {video.duration}
+                        </div>
+                        <div className="flex gap-1">
+                          {video.tags.map(tag => (
+                            <Badge key={tag} variant="secondary" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {activeTab === 'library' && (
           <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BookOpen className="h-5 w-5" />
-                  Mental Health Resources
+                  In-depth Educational Content
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -245,8 +335,8 @@ const ResourceCenter = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5" />
-                  Featured Exercises
+                  <Play className="h-5 w-5" />
+                  Skill Building Exercises (Tailored for Youth)
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -300,25 +390,43 @@ const ResourceCenter = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="p-6 border rounded-lg text-center">
+                  <div className="p-6 border rounded-lg text-center hover:shadow-medium transition-all">
                     <Heart className="h-8 w-8 mx-auto mb-3 text-wellness-calm" />
                     <h3 className="font-semibold mb-2">Mood Tracker</h3>
                     <p className="text-sm text-muted-foreground mb-4">Track your daily mood and emotions</p>
-                    <Button variant="outline" className="w-full">Open Tracker</Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setShowMoodTracker(true)}
+                    >
+                      Open Tracker
+                    </Button>
                   </div>
                   
-                  <div className="p-6 border rounded-lg text-center">
+                  <div className="p-6 border rounded-lg text-center hover:shadow-medium transition-all">
                     <Brain className="h-8 w-8 mx-auto mb-3 text-primary" />
                     <h3 className="font-semibold mb-2">Thought Journal</h3>
                     <p className="text-sm text-muted-foreground mb-4">Record and analyze your thoughts</p>
-                    <Button variant="outline" className="w-full">Start Journal</Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setShowThoughtJournal(true)}
+                    >
+                      Start Journal
+                    </Button>
                   </div>
                   
-                  <div className="p-6 border rounded-lg text-center">
+                  <div className="p-6 border rounded-lg text-center hover:shadow-medium transition-all">
                     <Users className="h-8 w-8 mx-auto mb-3 text-wellness-energy" />
                     <h3 className="font-semibold mb-2">Support Network</h3>
                     <p className="text-sm text-muted-foreground mb-4">Connect with peers and professionals</p>
-                    <Button variant="outline" className="w-full">Find Support</Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setShowSupportNetwork(true)}
+                    >
+                      Find Support
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -363,6 +471,206 @@ const ResourceCenter = () => {
                 }}
                 onExit={() => setSelectedExercise(null)}
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mood Tracker Modal */}
+      {showMoodTracker && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <AdvancedMoodTracker
+                onSave={(moodData) => {
+                  console.log('Mood saved:', moodData);
+                  setShowMoodTracker(false);
+                }}
+                onClose={() => setShowMoodTracker(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Thought Journal Modal */}
+      {showThoughtJournal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <Brain className="h-6 w-6 text-primary" />
+                    Thought Journal
+                  </h2>
+                  <p className="text-muted-foreground mt-1">Record and reflect on your thoughts</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowThoughtJournal(false)}
+                >
+                  ×
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">What's on your mind?</label>
+                  <textarea 
+                    className="w-full min-h-[200px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="Write your thoughts here... Be honest and open with yourself."
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">How do you feel about this?</label>
+                    <select className="w-full p-2 border rounded-lg">
+                      <option>Select emotion...</option>
+                      <option>Happy</option>
+                      <option>Sad</option>
+                      <option>Anxious</option>
+                      <option>Angry</option>
+                      <option>Confused</option>
+                      <option>Hopeful</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium mb-2 block">Intensity (1-10)</label>
+                    <input 
+                      type="range" 
+                      min="1" 
+                      max="10" 
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Challenge negative thoughts (optional)</label>
+                  <textarea 
+                    className="w-full min-h-[100px] p-3 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                    placeholder="If this thought is negative, can you reframe it in a more balanced way?"
+                  />
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4">
+                  <Button variant="outline" onClick={() => setShowThoughtJournal(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={() => {
+                    console.log('Journal entry saved');
+                    setShowThoughtJournal(false);
+                  }}>
+                    Save Entry
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Support Network Modal */}
+      {showSupportNetwork && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold flex items-center gap-2">
+                    <Users className="h-6 w-6 text-wellness-energy" />
+                    Support Network
+                  </h2>
+                  <p className="text-muted-foreground mt-1">Connect with peers and mental health professionals</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowSupportNetwork(false)}
+                >
+                  ×
+                </Button>
+              </div>
+
+              <div className="space-y-6">
+                {/* Crisis Helplines */}
+                <Card className="border-destructive/20 bg-destructive/5">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-destructive" />
+                      Emergency Helplines
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-background rounded-lg">
+                      <div>
+                        <h4 className="font-semibold">KIRAN Mental Health Helpline</h4>
+                        <p className="text-sm text-muted-foreground">24/7 Support in multiple languages</p>
+                      </div>
+                      <a href="tel:18005990019" className="text-lg font-bold text-destructive">1800-599-0019</a>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-background rounded-lg">
+                      <div>
+                        <h4 className="font-semibold">Vandrevala Foundation</h4>
+                        <p className="text-sm text-muted-foreground">Mental health support & counseling</p>
+                      </div>
+                      <a href="tel:18602662345" className="text-lg font-bold text-destructive">1860-266-2345</a>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Peer Support */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Peer Support Groups</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div className="flex items-start justify-between mb-2">
+                        <h4 className="font-semibold">Student Mental Health Community</h4>
+                        <Badge>Active</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">Connect with students facing similar challenges</p>
+                      <Button 
+                        size="sm" 
+                        onClick={() => window.open('https://discord.gg/67meY4hr', '_blank', 'noopener')}
+                      >
+                        Join on Discord
+                      </Button>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold mb-2">Anxiety & Stress Support</h4>
+                      <p className="text-sm text-muted-foreground mb-3">Share experiences and coping strategies</p>
+                      <Button size="sm" variant="outline">Coming Soon</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Professional Help */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Professional Support</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold mb-2">Find a Therapist</h4>
+                      <p className="text-sm text-muted-foreground mb-3">Connect with licensed mental health professionals</p>
+                      <Button size="sm" variant="outline">Search Therapists</Button>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-semibold mb-2">Campus Counseling</h4>
+                      <p className="text-sm text-muted-foreground mb-3">Free counseling services at your institution</p>
+                      <Button size="sm" variant="outline">Find Resources</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
           </div>
         </div>
