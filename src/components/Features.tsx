@@ -45,7 +45,9 @@ const features = [
     icon: BookOpen,
     title: "Micro-Learning & Skills",
     description: "Bite-sized mental health education, coping strategies, and skill-building exercises tailored for Indian youth.",
-
+    badge: "Available Now",
+    color: "bg-wellness-calm",
+    status: "available",
     route: "/resources"
   },
   {

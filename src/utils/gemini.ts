@@ -52,20 +52,13 @@ export async function sendMessageToGemini(history: Message[], newMessage: string
     }
     const chat = getChat(history);
     
-    // The sendMessage method handles sending the new message along with the entire history for context.
-    // Different SDK versions may accept either a string or an object; support both.
-    let response: any;
-    try {
-      response = await (chat as any).sendMessage(newMessage);
-    } catch {
-      response = await (chat as any).sendMessage({ message: newMessage });
-    }
-    // Safely extract text from response across versions
-    const text = typeof response?.text === 'function'
-      ? response.text()
-      : (response?.text ?? response?.response?.text ?? '');
+    // Send message with correct parameter structure per @google/genai API
+    const response = await chat.sendMessage({
+      message: newMessage
+    });
 
-    return String(text).trim();
+    // Extract text from response
+    return response.text.trim();
   } catch (error) {
     console.error('Gemini API Error:', error);
     throw error;
