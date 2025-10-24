@@ -45,9 +45,7 @@ const features = [
     icon: BookOpen,
     title: "Micro-Learning & Skills",
     description: "Bite-sized mental health education, coping strategies, and skill-building exercises tailored for Indian youth.",
-    badge: "Available Now",
-    color: "bg-wellness-calm",
-    status: "available",
+
     route: "/resources"
   },
   {
@@ -103,9 +101,9 @@ export function Features({ onFeatureClick }: FeaturesProps) {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Mental Wellness Features
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
             Discover our comprehensive suite of mental health tools designed specifically for your needs. 
-            Some features are available now, others are coming soon.
+            Some features are available now, others are Explore.
           </p>
         </div>
 
@@ -169,7 +167,7 @@ export function Features({ onFeatureClick }: FeaturesProps) {
                   ) : (
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-4 w-4" />
-                      <span>Coming Soon</span>
+                      <span>Explore</span>
                     </div>
                   )}
 
@@ -198,7 +196,7 @@ export function Features({ onFeatureClick }: FeaturesProps) {
             </div>
             <div className="flex items-center gap-2">
               <Lock className="h-3 w-3 text-gray-400" />
-              <span className="text-sm">Coming Soon</span>
+              <span className="text-sm">Explore</span>
             </div>
           </div>
         </div>

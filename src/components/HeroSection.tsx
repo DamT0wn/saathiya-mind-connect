@@ -2,8 +2,36 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Heart, MessageCircle, Shield, Users } from "lucide-react";
 import heroImage from "@/assets/hero-bg.jpg";
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export function HeroSection() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleStartChat = () => {
+    // If a floating chat button is present, trigger it. Otherwise navigate to the ai chat page.
+    const chatButton = document.querySelector('[data-floating-chat]');
+    if (chatButton) {
+      (chatButton as HTMLElement).click();
+      return;
+    }
+    navigate('/ai-chat');
+  };
+
+  const handleLearnMore = () => {
+    const scrollToFeatures = () => {
+      const el = document.getElementById('features');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    if (location.pathname !== '/') {
+      navigate('/');
+      // wait briefly for the home content to render, then scroll
+      setTimeout(scrollToFeatures, 150);
+    } else {
+      scrollToFeatures();
+    }
+  };
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -31,11 +59,16 @@ export function HeroSection() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button variant="hero" size="xl" className="animate-scale-in">
+            <Button variant="hero" size="xl" className="animate-scale-in" onClick={handleStartChat}>
               <MessageCircle className="mr-2 h-5 w-5" />
               Start Chatting Now
             </Button>
-            <Button variant="outline" size="xl" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
+            <Button
+              variant="outline"
+              size="xl"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white hover:animate-scale-in"
+              onClick={handleLearnMore}
+            >
               Learn More
             </Button>
           </div>
