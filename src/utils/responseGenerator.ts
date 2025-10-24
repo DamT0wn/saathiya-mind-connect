@@ -1,5 +1,6 @@
 import { ResponseTemplate, Message, ConversationContext, SentimentScore } from '@/types/chat';
 import { analyzeSentiment, detectCrisisKeywords, getDominantEmotion, getRiskLevel } from './sentimentAnalysis';
+import { sendMessageToGemini } from './gemini'; // NEW IMPORT
 
 export const responseTemplates: ResponseTemplate[] = [
   // Crisis Response
@@ -122,6 +123,27 @@ export class IntelligentResponseGenerator {
     this.context = context;
   }
 
+  // Helper to determine accessory features based on mood/risk level
+  private findSuggestedMetadata(userMessage: string, riskLevel: 'low' | 'moderate' | 'high' | 'critical') {
+    const lowerMessage = userMessage.toLowerCase();
+    const suggestedExercises: string[] = [];
+    const suggestedResources: string[] = [];
+
+    if (riskLevel === 'critical' || riskLevel === 'high') {
+      // For high-risk, suggest immediate grounding or breathing
+      suggestedExercises.push('breathing-478');
+      suggestedResources.push('crisis-helplines');
+    } else if (lowerMessage.includes('stress') || lowerMessage.includes('anxious') || lowerMessage.includes('anxiety')) {
+      suggestedExercises.push('grounding-54321');
+    } else if (lowerMessage.includes('sleep') || lowerMessage.includes('tired')) {
+      suggestedExercises.push('progressive-muscle-relaxation');
+    } else if (lowerMessage.includes('sad') || lowerMessage.includes('depressed')) {
+      suggestedExercises.push('gratitude-practice');
+    }
+    
+    return { suggestedExercises, suggestedResources };
+  }
+
   async generateResponse(userMessage: string): Promise<{
     response: string;
     followUp?: string;
@@ -133,10 +155,9 @@ export class IntelligentResponseGenerator {
     // Analyze sentiment
     const sentiment = analyzeSentiment(userMessage);
     const riskLevel = getRiskLevel(sentiment, userMessage);
-    const dominantEmotion = getDominantEmotion(sentiment.emotions);
 
-    // Check for crisis keywords first
-    if (detectCrisisKeywords(userMessage)) {
+    // --- CRISIS PROTOCOL: IMMEDIATE LOCAL RESPONSE ---
+    if (riskLevel === 'critical' || detectCrisisKeywords(userMessage)) {
       const crisisTemplate = this.templates.find(t => t.id === 'crisis-suicide');
       if (crisisTemplate) {
         return {
@@ -149,24 +170,24 @@ export class IntelligentResponseGenerator {
       }
     }
 
-    // Find matching template based on keywords and context
-    const matchingTemplate = this.findBestMatchingTemplate(userMessage, sentiment, dominantEmotion);
-    
-    if (matchingTemplate) {
-      return {
-        response: this.selectResponse(matchingTemplate.responses),
-        followUp: this.selectResponse(matchingTemplate.followUp || []),
-        suggestedExercises: matchingTemplate.exercises,
-        suggestedResources: matchingTemplate.resources,
-        riskLevel,
-        sentiment
-      };
+    // --- GENERATE AI RESPONSE VIA GEMINI API ---
+    let aiResponseText: string;
+    try {
+      // Pass the entire history to maintain multi-turn conversation context
+      aiResponseText = await sendMessageToGemini(this.conversationHistory, userMessage);
+    } catch (error) {
+      console.error("Gemini API call failed:", error);
+      aiResponseText = "Namaste. I'm sorry, my connection is unstable right now. Please call a helpline (1800-599-0019) if you need immediate support, or try chatting again in a moment. Dhanyawad.";
     }
 
-    // Default empathetic response
+    // --- ACCESSORY FEATURES (Exercises/Resources) ---
+    const { suggestedExercises, suggestedResources } = this.findSuggestedMetadata(userMessage, riskLevel);
+
     return {
-      response: this.generateContextualDefault(sentiment, dominantEmotion),
-      followUp: "Would you like to tell me more about what you're experiencing?",
+      response: aiResponseText,
+      followUp: undefined, // Gemini handles the flow now
+      suggestedExercises,
+      suggestedResources,
       riskLevel,
       sentiment
     };
