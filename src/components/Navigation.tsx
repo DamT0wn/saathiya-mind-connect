@@ -33,16 +33,16 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
     { id: 'crisis', label: 'Crisis Support', icon: AlertCircle, route: '/crisis-support' },
     { id: 'mood', label: 'Mood Analytics', icon: TrendingUp, route: '/mood-dashboard' },
     { id: 'learning', label: 'Resources', icon: BookOpen, route: '/resources' },
-    { id: 'groups', label: 'Peer Groups', icon: Users, badge: 'SOON', external: true, href: 'https://discord.gg/67meY4hr' },
+  { id: 'groups', label: 'Peer Groups', icon: Users, badge: 'Explore', external: true, href: 'https://discord.gg/67meY4hr' },
   ];
 
   const handleItemClick = (item: any) => {
-    if (item.badge === 'SOON' && !item.external) {
+    if (item.badge === 'Explore' && !item.external) {
       // Handle coming soon features
       return;
     }
 
-    if (item.route.startsWith('/#')) {
+    if (typeof item.route === 'string' && item.route.startsWith('/#')) {
       // Handle section scrolling on home page
       if (location.pathname !== '/') {
         navigate('/');
@@ -96,14 +96,14 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = isCurrentPage(item.route) || activeSection === item.id;
-              const isDisabled = item.badge === 'SOON' && !item.external;
+              const isDisabled = item.badge === 'Explore' && !item.external;
               
               return (
                 <Button
                   key={item.id}
                   variant={isActive ? "default" : "ghost"}
                   onClick={() => handleItemClick(item)}
-                  className={`w-full justify-start space-x-3 h-12 ${
+                  className={`relative flex items-center space-x-2 h-10 px-4 ${
                     isDisabled ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={isDisabled}
@@ -112,7 +112,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
                   <span className="hidden lg:inline">{item.label}</span>
                   {item.badge && (
                     <Badge 
-                      variant={item.badge === 'SOON' ? "outline" : "secondary"}
+                      variant={item.badge === 'Explore' ? "outline" : "secondary"}
                       className="absolute -top-1 -right-1 text-xs px-1 py-0"
                     >
                       {item.badge}
@@ -156,24 +156,24 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
             <div className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = isCurrentPage(item.route) || activeSection === item.id;
-                const isDisabled = item.badge === 'SOON';
+                  const isActive = isCurrentPage(item.route) || activeSection === item.id;
+                  const isDisabled = item.badge === 'Explore' && !item.external;
                 
                 return (
                   <Button
                     key={item.id}
                     variant={isActive ? "default" : "ghost"}
                     onClick={() => handleItemClick(item)}
-                    className={`w-full justify-start space-x-3 h-12 ${
-                      isDisabled ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    className={`relative w-full justify-start space-x-3 h-12 ${
+                        isDisabled ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     disabled={isDisabled}
                   >
                     <Icon className="h-5 w-5" />
                     <span>{item.label}</span>
                     {item.badge && (
                       <Badge 
-                        variant={item.badge === 'SOON' ? "outline" : "secondary"}
+                        variant={item.badge === 'Explore' ? "outline" : "secondary"}
                         className="ml-auto"
                       >
                         {item.badge}
