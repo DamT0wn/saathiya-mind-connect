@@ -57,10 +57,10 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
           
           {/* Welcome tooltip */}
           <div className="absolute bottom-full right-0 mb-2 opacity-0 hover:opacity-100 transition-opacity duration-300">
-            <div className="bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap">
-              Hi! I'm Saathiya. Click to start chatting! 👋
               <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
+              <div className="bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap">
+              Hi! I'm Saathi. Click to start chatting! 
           </div>
         </div>
       )}
@@ -74,13 +74,13 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
               <div className="relative">
                 <img 
                   src={chatbotAvatar} 
-                  alt="Saathiya AI" 
+                  alt="Saathi AI" 
                   className="w-7 h-7 rounded-full"
                 />
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border border-white"></div>
               </div>
               <div>
-                <h4 className="font-medium text-white text-sm">Saathiya AI</h4>
+                <h4 className="font-medium text-white text-sm">Saathi AI</h4>
                 <p className="text-xs text-white/80">Online now</p>
               </div>
             </div>
@@ -108,7 +108,7 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
           <div className="p-4 space-y-3">
             <div className="text-center">
               <Bot className="h-8 w-8 mx-auto text-primary mb-2" />
-              <h3 className="font-medium text-sm mb-1">Welcome to Saathiya!</h3>
+              <h3 className="font-medium text-sm mb-1">Welcome to Saathi!</h3>
               <p className="text-xs text-muted-foreground">
                 Your AI companion for mental wellness
               </p>

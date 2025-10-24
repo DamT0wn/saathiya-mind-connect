@@ -54,10 +54,12 @@ const features = [
     icon: Users,
     title: "Peer Micro-Groups",
     description: "Small, supportive communities for shared experiences and peer-to-peer mental health support with professional moderation.",
-    badge: "Coming Soon",
+    badge: "Join Discord",
     color: "bg-wellness-rest",
-    status: "coming-soon",
-    route: null
+    status: "available",
+    route: null,
+    external: true,
+    href: "https://discord.gg/67meY4hr"
   }
 ];
 
@@ -68,9 +70,19 @@ interface FeaturesProps {
 export function Features({ onFeatureClick }: FeaturesProps) {
   const navigate = useNavigate();
 
-  const handleFeatureClick = (feature: any) => {
+  interface Feature {
+    title: string;
+    status: string;
+    route: string | null;
+    external?: boolean;
+    href?: string;
+  }
+
+  const handleFeatureClick = (feature: Feature) => {
     if (feature.status === 'available') {
-      if (feature.title === 'Floating Chatbot') {
+      if (feature.external && feature.href) {
+        window.open(feature.href, '_blank', 'noopener');
+      } else if (feature.title === 'Floating Chatbot') {
         // Scroll to chatbot or trigger it
         const chatButton = document.querySelector('[data-floating-chat]');
         if (chatButton) {
@@ -158,6 +170,17 @@ export function Features({ onFeatureClick }: FeaturesProps) {
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
                       <Clock className="h-4 w-4" />
                       <span>Coming Soon</span>
+                    </div>
+                  )}
+
+                  {/* If this is the Peer Micro-Groups feature, surface the Discord invite */}
+                  {feature.title === 'Peer Micro-Groups' && (
+                    <div className="mt-3">
+                      <a href="https://discord.gg/67meY4hr" target="_blank" rel="noopener noreferrer">
+                        <Button variant="secondary" size="sm" className="w-full">
+                          Join Peer Groups on Discord
+                        </Button>
+                      </a>
                     </div>
                   )}
                 </CardContent>

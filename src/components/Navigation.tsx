@@ -33,11 +33,11 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
     { id: 'crisis', label: 'Crisis Support', icon: AlertCircle, route: '/crisis-support' },
     { id: 'mood', label: 'Mood Analytics', icon: TrendingUp, route: '/mood-dashboard' },
     { id: 'learning', label: 'Resources', icon: BookOpen, route: '/resources' },
-    { id: 'groups', label: 'Peer Groups', icon: Users, badge: 'SOON' },
+    { id: 'groups', label: 'Peer Groups', icon: Users, badge: 'SOON', external: true, href: 'https://discord.gg/67meY4hr' },
   ];
 
   const handleItemClick = (item: any) => {
-    if (item.badge === 'SOON') {
+    if (item.badge === 'SOON' && !item.external) {
       // Handle coming soon features
       return;
     }
@@ -57,8 +57,13 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
         onSectionClick(item.id);
       }
     } else {
-      // Handle page navigation
-      navigate(item.route);
+      // Handle page navigation or external links
+      if (item.external && item.href) {
+        // Open external link in a new tab
+        window.open(item.href, '_blank', 'noopener');
+      } else {
+        navigate(item.route);
+      }
     }
     setIsMobileMenuOpen(false);
   };
@@ -81,7 +86,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
               <Brain className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Saathiya</h1>
+              <h1 className="text-xl font-bold text-gray-900">Saathi</h1>
               <p className="text-xs text-gray-500">Mind Connect</p>
             </div>
           </div>
@@ -91,14 +96,14 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = isCurrentPage(item.route) || activeSection === item.id;
-              const isDisabled = item.badge === 'SOON';
+              const isDisabled = item.badge === 'SOON' && !item.external;
               
               return (
                 <Button
                   key={item.id}
                   variant={isActive ? "default" : "ghost"}
                   onClick={() => handleItemClick(item)}
-                  className={`relative flex items-center space-x-2 h-10 px-4 ${
+                  className={`w-full justify-start space-x-3 h-12 ${
                     isDisabled ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                   disabled={isDisabled}

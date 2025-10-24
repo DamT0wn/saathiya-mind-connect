@@ -1,11 +1,11 @@
-USP of Saathiya – Detailed White Paper
+USP of Saathi – Detailed White Paper
 1. Introduction
 
 Overview of India’s youth mental health challenges: high stress, anxiety, and limited access to professional care.
 
 The importance of culturally-sensitive, accessible, and confidential solutions.
 
-How Saathiya was conceived as a response to this critical gap.
+How Saathi was conceived as a response to this critical gap.
 
 2. Core Philosophy
 
@@ -38,7 +38,7 @@ Reducing false negatives and false positives: ensemble models, continuous improv
 
 3.3 B2B2C and Freemium Model
 
-How schools, colleges, and workplaces can deploy Saathiya.
+How schools, colleges, and workplaces can deploy Saathi.
 
 Institutional dashboards: anonymized data, outcome tracking, KPIs like PHQ-9 and GAD-7.
 
@@ -96,7 +96,7 @@ Normalizing help-seeking behavior and reducing stigma.
 
 Comparison with standard mental health apps and chatbots.
 
-Why Saathiya’s combination of AI empathy, cultural tuning, gamification, and B2B2C/freemium model is unique.
+Why Saathi’s combination of AI empathy, cultural tuning, gamification, and B2B2C/freemium model is unique.
 
 Evidence-based approach: PHQ-9, GAD-7 tracking, and clinical validation.
 
@@ -112,8 +112,8 @@ Continuous improvement of AI models based on real-world feedback.
 
 10. Conclusion
 
-Summarizing how Saathiya’s USP combines empathy, safety, accessibility, cultural relevance, and technology.
+Summarizing how Saathi’s USP combines empathy, safety, accessibility, cultural relevance, and technology.
 
 Highlighting the potential societal impact and scalability.
 
-Positioning Saathiya as a first-of-its-kind mental wellness platform for India’s youth.
+Positioning Saathi as a first-of-its-kind mental wellness platform for India’s youth.

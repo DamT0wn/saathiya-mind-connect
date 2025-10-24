@@ -68,7 +68,7 @@ export function Footer() {
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center space-x-2">
               <Heart className="h-8 w-8 text-primary" />
-              <span className="text-2xl font-bold">Saathiya</span>
+              <span className="text-2xl font-bold">Saathi</span>
             </div>
             <p className="text-muted-foreground leading-relaxed">
               India's first AI-powered mental wellness companion for youth. 
@@ -160,7 +160,7 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
           <div className="text-sm text-muted-foreground">
-            © 2024 Saathiya. All rights reserved. Made with ❤️ for Indian youth.
+            © 2024 Saathi. All rights reserved. Made with ❤️ for Indian youth.
           </div>
           
           <div className="flex items-center space-x-4">
