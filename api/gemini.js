@@ -55,9 +55,22 @@ export default async function handler(req, res) {
 
     try {
       console.log('Calling chat.sendMessage with message length:', String(prompt || '').length);
-      const response = await chat.sendMessage({ message: String(prompt || '') });
+      // Try primary (string) form first, then fallback to part-list form if needed
+      let response;
+      try {
+        response = await chat.sendMessage({ message: String(prompt || '') });
+      } catch (primaryErr) {
+        console.warn('Primary chat.sendMessage failed, attempting fallback part-list form. Error:', primaryErr?.message || primaryErr);
+        try {
+          response = await chat.sendMessage({ message: [{ text: String(prompt || '') }] });
+          console.log('Fallback chat.sendMessage succeeded using part-list shape');
+        } catch (fallbackErr) {
+          console.error('Fallback chat.sendMessage also failed:', fallbackErr?.message || fallbackErr);
+          throw fallbackErr;
+        }
+      }
 
-      // Log some diagnostics about the response object
+      // Log diagnostics about the response
       try {
         const keys = response && typeof response === 'object' ? Object.keys(response) : [];
         console.log('/api/gemini response keys:', keys);
@@ -65,12 +78,54 @@ export default async function handler(req, res) {
         console.log('/api/gemini response inspect failed', e?.message || e);
       }
 
-      const text = response && response.text ? String(response.text) : '';
-      console.log('/api/gemini response text length:', text.length, 'text present:', !!text);
-      return res.status(200).json({ response });
+      // Robust extraction of text from various SDK response shapes
+      function extractTextFromResponse(resp) {
+        try {
+          if (!resp) return '';
+          // 1) SDK convenience getter
+          if (typeof resp.text === 'string' && resp.text.trim().length > 0) return resp.text.trim();
+
+          // 2) candidates -> content -> parts -> text
+          if (Array.isArray(resp.candidates) && resp.candidates.length > 0) {
+            const first = resp.candidates[0];
+            const content = first.content;
+            if (content) {
+              const parts = content.parts || (Array.isArray(content) ? content : undefined);
+              if (Array.isArray(parts) && parts.length > 0) {
+                const texts = parts.map(p => (typeof p === 'string' ? p : (p && p.text) || '')).filter(Boolean);
+                if (texts.length) return texts.join('');
+              }
+            }
+          }
+
+          // 3) output -> content -> parts
+          if (Array.isArray(resp.output) && resp.output.length > 0) {
+            for (const out of resp.output) {
+              if (!out) continue;
+              const contents = out.content || [];
+              for (const c of contents) {
+                const parts = c.parts || [];
+                const texts = parts.map(p => (typeof p === 'string' ? p : (p && p.text) || '')).filter(Boolean);
+                if (texts.length) return texts.join('');
+              }
+            }
+          }
+
+          // 4) nested response field
+          if (resp.response) return extractTextFromResponse(resp.response);
+
+          return '';
+        } catch (e) {
+          console.warn('extractTextFromResponse failed:', e?.message || e);
+          return '';
+        }
+      }
+
+      const text = extractTextFromResponse(response);
+      console.log('/api/gemini extracted text length:', text.length, 'text present:', !!text);
+      return res.status(200).json({ text, raw: response });
     } catch (sendError) {
       console.error('chat.sendMessage threw an error:', sendError?.message || sendError);
-      // Return the error details in the response temporarily to help debugging in production logs
       return res.status(500).json({ error: String(sendError?.message || sendError), details: (sendError && sendError.stack) ? String(sendError.stack) : undefined });
     }
   } catch (error) {
