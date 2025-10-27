@@ -53,10 +53,26 @@ export default async function handler(req, res) {
       }
     });
 
-    const response = await chat.sendMessage({ message: String(prompt || '') });
-    const text = response && response.text ? String(response.text) : '';
-    console.log('/api/gemini response text length:', text.length);
-    return res.status(200).json({ text });
+    try {
+      console.log('Calling chat.sendMessage with message length:', String(prompt || '').length);
+      const response = await chat.sendMessage({ message: String(prompt || '') });
+
+      // Log some diagnostics about the response object
+      try {
+        const keys = response && typeof response === 'object' ? Object.keys(response) : [];
+        console.log('/api/gemini response keys:', keys);
+      } catch (e) {
+        console.log('/api/gemini response inspect failed', e?.message || e);
+      }
+
+      const text = response && response.text ? String(response.text) : '';
+      console.log('/api/gemini response text length:', text.length, 'text present:', !!text);
+      return res.status(200).json({ text });
+    } catch (sendError) {
+      console.error('chat.sendMessage threw an error:', sendError?.message || sendError);
+      // Return the error details in the response temporarily to help debugging in production logs
+      return res.status(500).json({ error: String(sendError?.message || sendError), details: (sendError && sendError.stack) ? String(sendError.stack) : undefined });
+    }
   } catch (error) {
     console.error('Error in /api/gemini:', error);
     return res.status(500).json({ error: String(error?.message || error) });
