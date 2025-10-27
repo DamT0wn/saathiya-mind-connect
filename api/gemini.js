@@ -67,7 +67,7 @@ export default async function handler(req, res) {
 
       const text = response && response.text ? String(response.text) : '';
       console.log('/api/gemini response text length:', text.length, 'text present:', !!text);
-      return res.status(200).json({ text });
+      return res.status(200).json({ response });
     } catch (sendError) {
       console.error('chat.sendMessage threw an error:', sendError?.message || sendError);
       // Return the error details in the response temporarily to help debugging in production logs
