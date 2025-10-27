@@ -30,8 +30,14 @@ export default async function handler(req, res) {
     const { prompt, history } = body || {};
 
     const apiKey = (process.env.GEMINI_API_KEY || '').trim();
+    // Log incoming request meta
     console.log('Incoming /api/gemini request. prompt length:', String(prompt || '').length, 'history length:', (history || []).length);
-    console.log('GEMINI_API_KEY present on server:', !!apiKey);
+    // Log deployment context to help debug env scoping issues
+    console.log('VERCEL_ENV:', process.env.VERCEL_ENV, 'VERCEL_URL:', process.env.VERCEL_URL);
+    // Log masked presence of the key (do NOT print the full key)
+    const hasKey = !!apiKey;
+    const masked = hasKey ? `${apiKey.slice(0,4)}...${apiKey.slice(-4)} (len=${apiKey.length})` : null;
+    console.log('GEMINI_API_KEY present on server:', hasKey, masked ? `masked:${masked}` : '');
     if (!apiKey) {
       console.error('Missing GEMINI_API_KEY in environment on server');
       return res.status(500).json({ error: 'Server misconfiguration: missing GEMINI_API_KEY' });
