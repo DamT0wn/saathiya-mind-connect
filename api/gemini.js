@@ -138,7 +138,41 @@ export default async function handler(req, res) {
 
       const text = extractTextFromResponse(response);
       console.log('/api/gemini extracted text length:', text.length, 'text present:', !!text);
-      return res.status(200).json({ text, raw: response });
+
+      // Build a simplified debug view of candidates to return for inspection
+      let debugCandidates = [];
+      try {
+        if (Array.isArray(response?.candidates)) {
+          debugCandidates = response.candidates.map(c => {
+            const partsTexts = [];
+            try {
+              const content = c.content;
+              if (content) {
+                const parts = content.parts || (Array.isArray(content) ? content : []);
+                if (Array.isArray(parts)) {
+                  for (const p of parts) {
+                    if (!p) continue;
+                    if (typeof p === 'string') partsTexts.push(p);
+                    else if (typeof p.text === 'string') partsTexts.push(p.text);
+                  }
+                }
+              }
+            } catch (e) {
+              // ignore
+            }
+
+            return {
+              finishReason: c.finishReason,
+              tokenCount: c.tokenCount,
+              texts: partsTexts
+            };
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to build debugCandidates', e?.message || e);
+      }
+
+      return res.status(200).json({ text, candidates: debugCandidates, rawKeys: Object.keys(response || {}) });
     } catch (sendError) {
       console.error('chat.sendMessage threw an error:', sendError?.message || sendError);
       return res.status(500).json({ error: String(sendError?.message || sendError), details: (sendError && sendError.stack) ? String(sendError.stack) : undefined });
