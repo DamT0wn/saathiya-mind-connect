@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     try { body = req.body && Object.keys(req.body).length ? req.body : JSON.parse(await new Promise(r => { let d=''; req.on('data',c=>d+=c); req.on('end',()=>r(d)); })); } catch (e) { body = {}; }
     const { prompt, history } = body || {};
 
-    const apiKey = (process.env.GEMINI_API_KEY || '').trim();
+    let apiKey = (process.env.GEMINI_API_KEY || '').trim();
     // Log incoming request meta
     console.log('Incoming /api/gemini request. prompt length:', String(prompt || '').length, 'history length:', (history || []).length);
     // Log deployment context to help debug env scoping issues
@@ -38,6 +38,15 @@ export default async function handler(req, res) {
     const hasKey = !!apiKey;
     const masked = hasKey ? `${apiKey.slice(0,4)}...${apiKey.slice(-4)} (len=${apiKey.length})` : null;
     console.log('GEMINI_API_KEY present on server:', hasKey, masked ? `masked:${masked}` : '');
+    // Temporary fallback: if GEMINI_API_KEY is missing, try VITE_GEMINI_API_KEY (useful if you set VITE_* in Vercel by mistake)
+    if (!apiKey) {
+      const viteKey = (process.env.VITE_GEMINI_API_KEY || '').trim();
+      if (viteKey) {
+        console.warn('GEMINI_API_KEY missing; falling back to VITE_GEMINI_API_KEY (not recommended for production).');
+        apiKey = viteKey;
+      }
+    }
+
     if (!apiKey) {
       console.error('Missing GEMINI_API_KEY in environment on server');
       return res.status(500).json({ error: 'Server misconfiguration: missing GEMINI_API_KEY' });
