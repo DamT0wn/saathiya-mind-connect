@@ -1,6 +1,5 @@
 import { ResponseTemplate, Message, ConversationContext, SentimentScore } from '@/types/chat';
 import { analyzeSentiment, detectCrisisKeywords, getDominantEmotion, getRiskLevel } from './sentimentAnalysis';
-import { sendMessageToGemini } from './gemini'; // NEW IMPORT
 
 export const responseTemplates: ResponseTemplate[] = [
   // Crisis Response
@@ -170,13 +169,36 @@ export class IntelligentResponseGenerator {
       }
     }
 
-    // --- GENERATE AI RESPONSE VIA GEMINI API ---
+    // --- GENERATE AI RESPONSE VIA SERVER-SIDE /api/gemini ---
     let aiResponseText: string;
     try {
-      // Pass the entire history to maintain multi-turn conversation context
-      aiResponseText = await sendMessageToGemini(this.conversationHistory, userMessage);
+      const resp = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: userMessage, history: this.conversationHistory })
+      });
+
+      if (!resp.ok) {
+        let serverMsg = '';
+        try {
+          const errJson = await resp.json();
+          serverMsg = errJson && errJson.error ? String(errJson.error) : JSON.stringify(errJson);
+        } catch (e) {
+          serverMsg = `status ${resp.status}`;
+        }
+        console.error('Server /api/gemini error:', serverMsg);
+        throw new Error(`Server endpoint returned ${resp.status}: ${serverMsg}`);
+      }
+
+      const json = await resp.json();
+      aiResponseText = (json && json.text) ? String(json.text) : '';
+
+      if (!aiResponseText) {
+        console.error('Server /api/gemini returned empty text:', json);
+        throw new Error('Empty response from server /api/gemini');
+      }
     } catch (error) {
-      console.error("Gemini API call failed:", error);
+      console.error('Server-side Gemini call failed:', error);
       aiResponseText = "Namaste. I'm sorry, my connection is unstable right now. Please call a helpline (1800-599-0019) if you need immediate support, or try chatting again in a moment. Dhanyawad.";
     }
 
