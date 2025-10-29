@@ -169,37 +169,30 @@ export class IntelligentResponseGenerator {
       }
     }
 
-    // --- GENERATE AI RESPONSE VIA SERVER-SIDE /api/gemini ---
+    // --- GENERATE AI RESPONSE VIA DIRECT GEMINI CALL ---
     let aiResponseText: string;
     try {
-      const resp = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userMessage, history: this.conversationHistory })
-      });
-
-      if (!resp.ok) {
-        let serverMsg = '';
-        try {
-          const errJson = await resp.json();
-          serverMsg = errJson && errJson.error ? String(errJson.error) : JSON.stringify(errJson);
-        } catch (e) {
-          serverMsg = `status ${resp.status}`;
-        }
-        console.error('Server /api/gemini error:', serverMsg);
-        throw new Error(`Server endpoint returned ${resp.status}: ${serverMsg}`);
-      }
-
-      const json = await resp.json();
-      aiResponseText = (json && json.text) ? String(json.text) : '';
-
-      if (!aiResponseText) {
-        console.error('Server /api/gemini returned empty text:', json);
-        throw new Error('Empty response from server /api/gemini');
-      }
+      // Import the sendMessageToGemini function dynamically
+      const { sendMessageToGemini } = await import('./gemini');
+      aiResponseText = await sendMessageToGemini(userMessage, this.conversationHistory);
     } catch (error) {
-      console.error('Server-side Gemini call failed:', error);
-      aiResponseText = "Namaste. I'm sorry, my connection is unstable right now. Please call a helpline (1800-599-0019) if you need immediate support, or try chatting again in a moment. Dhanyawad.";
+      console.error('Direct Gemini call failed:', error);
+      
+      // Check if it's an API permission error
+      if (error && typeof error === 'object' && 'message' in error) {
+        const errorMessage = String(error.message);
+        if (errorMessage.includes('API Setup Required') || errorMessage.includes('SERVICE_DISABLED')) {
+          aiResponseText = "🔧 मुझे सक्रिय करने के लिए: Google Cloud Console में जाकर Generative Language API को enable करें। फिर वापस आएं।";
+        } else if (errorMessage.includes('Invalid API Key') || errorMessage.includes('VITE_GEMINI_API_KEY')) {
+          aiResponseText = "❌ Configuration issue. Please check the setup and try again.";
+        } else if (errorMessage.includes('Model Error')) {
+          aiResponseText = "🤖 AI model temporarily unavailable. This will be resolved automatically. Please try again in a moment.";
+        } else {
+          aiResponseText = "Namaste. I'm sorry, my connection is unstable right now. Please call a helpline (1800-599-0019) if you need immediate support, or try chatting again in a moment. Dhanyawad.";
+        }
+      } else {
+        aiResponseText = "Namaste. I'm sorry, my connection is unstable right now. Please call a helpline (1800-599-0019) if you need immediate support, or try chatting again in a moment. Dhanyawad.";
+      }
     }
 
     // --- ACCESSORY FEATURES (Exercises/Resources) ---

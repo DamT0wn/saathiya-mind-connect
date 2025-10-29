@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gemini API Test</title>
+</head>
+<body>
+    <h1>Gemini API Test</h1>
+    <button onclick="testAPI()">Test Gemini API</button>
+    <div id="result"></div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from 'https://esm.run/@google/generative-ai';
+        
+        window.testAPI = async function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const API_KEY = 'AIzaSyBHKHXB-zS3793a7BE0qWdiHaqf3ccyqLg';
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                
+                // Try multiple models for better compatibility
+                const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+                let result;
+                let workingModel = null;
+                
+                for (const modelName of modelsToTry) {
+                    try {
+                        console.log('Trying model:', modelName);
+                        const model = genAI.getGenerativeModel({ 
+                            model: modelName,
+                            generationConfig: {
+                                temperature: 0.7,
+                                maxOutputTokens: 256
+                            }
+                        });
+                        
+                        result = await model.generateContent('Hello, how are you?');
+                        workingModel = modelName;
+                        break; // Success! Exit the loop
+                    } catch (modelError) {
+                        console.warn(`Model ${modelName} failed:`, modelError);
+                        // Continue to next model
+                    }
+                }
+                
+                if (!result) {
+                    throw new Error('All AI models are currently unavailable');
+                }
+                const response = await result.response;
+                const text = response.text();
+
+                resultDiv.innerHTML = `<h3>✅ SUCCESS!</h3><p><strong>Working Model:</strong> ${workingModel}</p><p><strong>Response:</strong> ${text}</p>`;
+            } catch (error) {
+                console.error('API Error:', error);
+                resultDiv.innerHTML = `<h3>❌ ERROR</h3><p><strong>Error:</strong> ${error.message}</p><pre>${JSON.stringify(error, null, 2)}</pre>`;
+                
+                if (error.message && error.message.includes('SERVICE_DISABLED')) {
+                    resultDiv.innerHTML += `
+                        <div style="background: #fff3cd; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                            <h4>🔧 How to Fix:</h4>
+                            <ol>
+                                <li>Go to <a href="https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com" target="_blank">Google Cloud Console</a></li>
+                                <li>Make sure you're logged in with the correct Google account</li>
+                                <li>Click "Enable" to enable the Generative Language API</li>
+                                <li>Wait 1-2 minutes for the API to activate</li>
+                                <li>Come back and test again</li>
+                            </ol>
+                        </div>
+                    `;
+                }
+            }
+        }
+    </script>
+</body>
+</html>

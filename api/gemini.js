@@ -29,7 +29,17 @@ export default async function handler(req, res) {
     try { body = req.body && Object.keys(req.body).length ? req.body : JSON.parse(await new Promise(r => { let d=''; req.on('data',c=>d+=c); req.on('end',()=>r(d)); })); } catch (e) { body = {}; }
     const { prompt, history } = body || {};
 
-    let apiKey = (process.env.GEMINI_API_KEY || '').trim();
+    // Key selection logic:
+    // - In production prefer `GEMINI_API_KEY` (set in Vercel dashboard)
+    // - For local development, or when `PREFER_VITE_KEY=true`, prefer `VITE_GEMINI_API_KEY` so
+    //   you can keep your key in .env.local as `VITE_GEMINI_API_KEY` during dev without exposing it to the browser.
+    const preferVite = String(process.env.PREFER_VITE_KEY || '').toLowerCase() === 'true' || process.env.NODE_ENV === 'development';
+    let apiKey = '';
+    if (preferVite) {
+      apiKey = (process.env.VITE_GEMINI_API_KEY || '').trim() || (process.env.GEMINI_API_KEY || '').trim();
+    } else {
+      apiKey = (process.env.GEMINI_API_KEY || '').trim() || (process.env.VITE_GEMINI_API_KEY || '').trim();
+    }
     // Log incoming request meta
     console.log('Incoming /api/gemini request. prompt length:', String(prompt || '').length, 'history length:', (history || []).length);
     // Log deployment context to help debug env scoping issues
@@ -37,19 +47,11 @@ export default async function handler(req, res) {
     // Log masked presence of the key (do NOT print the full key)
     const hasKey = !!apiKey;
     const masked = hasKey ? `${apiKey.slice(0,4)}...${apiKey.slice(-4)} (len=${apiKey.length})` : null;
-    console.log('GEMINI_API_KEY present on server:', hasKey, masked ? `masked:${masked}` : '');
-    // Temporary fallback: if GEMINI_API_KEY is missing, try VITE_GEMINI_API_KEY (useful if you set VITE_* in Vercel by mistake)
-    if (!apiKey) {
-      const viteKey = (process.env.VITE_GEMINI_API_KEY || '').trim();
-      if (viteKey) {
-        console.warn('GEMINI_API_KEY missing; falling back to VITE_GEMINI_API_KEY (not recommended for production).');
-        apiKey = viteKey;
-      }
-    }
+    console.log('GEMINI API key present on server:', hasKey, masked ? `masked:${masked}` : '', 'preferVite:', preferVite);
 
     if (!apiKey) {
-      console.error('Missing GEMINI_API_KEY in environment on server');
-      return res.status(500).json({ error: 'Server misconfiguration: missing GEMINI_API_KEY' });
+      console.error('Missing GEMINI API key in environment. Expected GEMINI_API_KEY or VITE_GEMINI_API_KEY to be set.');
+      return res.status(500).json({ error: 'Server misconfiguration: missing GEMINI API key' });
     }
 
     const genAI = new GoogleGenAI({ apiKey });

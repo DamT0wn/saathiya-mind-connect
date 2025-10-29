@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Diagnostics</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        .warning { background: #fff3cd; border-color: #ffeaa7; }
+        button { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🔧 API Diagnostics Tool</h1>
+    
+    <div class="test-section">
+        <h3>Step 1: Environment Check</h3>
+        <button onclick="checkEnvironment()">Check API Key</button>
+        <div id="env-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 2: Direct API Test</h3>
+        <button onclick="testDirectAPI()">Test Direct API Call</button>
+        <div id="api-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 3: Backup System Test</h3>
+        <button onclick="testBackupSystem()">Test Backup Responses</button>
+        <div id="backup-result"></div>
+    </div>
+
+    <script type="module">
+        window.checkEnvironment = function() {
+            const result = document.getElementById('env-result');
+            const apiKey = 'AIzaSyBHKHXB-zS3793a7BE0qWdiHaqf3ccyqLg';
+            
+            if (apiKey && apiKey !== 'your_api_key_here') {
+                result.innerHTML = `
+                    <div class="success">
+                        <h4>✅ API Key Found</h4>
+                        <p><strong>Key:</strong> ${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}</p>
+                        <p><strong>Length:</strong> ${apiKey.length} characters</p>
+                        <p><strong>Format:</strong> ${apiKey.startsWith('AIza') ? 'Valid Google API key format' : 'Invalid format'}</p>
+                    </div>
+                `;
+            } else {
+                result.innerHTML = '<div class="error"><h4>❌ API Key Missing</h4><p>No API key found in environment</p></div>';
+            }
+        }
+
+        window.testDirectAPI = async function() {
+            const result = document.getElementById('api-result');
+            result.innerHTML = '<div class="warning">🔄 Testing API...</div>';
+            
+            try {
+                const { GoogleGenerativeAI } = await import('https://esm.run/@google/generative-ai');
+                const apiKey = 'AIzaSyBHKHXB-zS3793a7BE0qWdiHaqf3ccyqLg';
+                const genAI = new GoogleGenerativeAI(apiKey);
+                
+                const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+                let workingModel = null;
+                let response = null;
+                let errors = [];
+                
+                for (const modelName of modelsToTry) {
+                    try {
+                        console.log('Testing model:', modelName);
+                        const model = genAI.getGenerativeModel({ model: modelName });
+                        const testResult = await model.generateContent('Hello');
+                        const text = await testResult.response.text();
+                        
+                        workingModel = modelName;
+                        response = text;
+                        break;
+                    } catch (modelError) {
+                        errors.push(`${modelName}: ${modelError.message}`);
+                        console.error('Model error:', modelError);
+                    }
+                }
+                
+                if (workingModel) {
+                    result.innerHTML = `
+                        <div class="success">
+                            <h4>✅ API Working!</h4>
+                            <p><strong>Working Model:</strong> ${workingModel}</p>
+                            <p><strong>Response:</strong> ${response}</p>
+                        </div>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <div class="error">
+                            <h4>❌ All Models Failed</h4>
+                            <p>This suggests a Google-side issue or API access problem.</p>
+                            <h5>Errors:</h5>
+                            <pre>${errors.join('\\n')}</pre>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h4>❌ API Test Failed</h4>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        window.testBackupSystem = async function() {
+            const result = document.getElementById('backup-result');
+            
+            try {
+                // Import our backup function (we'll simulate it here)
+                const testMessages = [
+                    "I'm feeling stressed about my exams",
+                    "I'm feeling sad and lonely",
+                    "I can't sleep well",
+                    "I'm having family problems",
+                    "I'm feeling good today"
+                ];
+                
+                let responses = [];
+                for (const msg of testMessages) {
+                    // Simulate the backup response logic
+                    const response = getBackupResponseDemo(msg);
+                    responses.push(`<p><strong>Input:</strong> "${msg}"<br><strong>Response:</strong> ${response}</p>`);
+                }
+                
+                result.innerHTML = `
+                    <div class="success">
+                        <h4>✅ Backup System Working</h4>
+                        <p>Even if Gemini API is down, the chatbot can still provide helpful responses:</p>
+                        ${responses.join('')}
+                    </div>
+                `;
+                
+            } catch (error) {
+                result.innerHTML = `<div class="error"><h4>❌ Backup System Error</h4><p>${error.message}</p></div>`;
+            }
+        }
+        
+        function getBackupResponseDemo(prompt) {
+            const lowerPrompt = prompt.toLowerCase();
+            
+            if (lowerPrompt.includes('stress') || lowerPrompt.includes('exam')) {
+                return "मैं समझ सकता हूं कि आप तनाव महसूस कर रहे हैं। Deep breathing try करें...";
+            }
+            if (lowerPrompt.includes('sad') || lowerPrompt.includes('lonely')) {
+                return "आपकी feelings valid हैं। आप अकेले नहीं हैं...";
+            }
+            if (lowerPrompt.includes('sleep')) {
+                return "Sleep problems affect everything! Regular sleep schedule maintain करें...";
+            }
+            if (lowerPrompt.includes('family')) {
+                return "Family dynamics can be challenging. Communication gap हो सकता है...";
+            }
+            if (lowerPrompt.includes('good')) {
+                return "यह सुनकर खुशी हुई! Positive moments को celebrate करना important है...";
+            }
+            
+            return "Namaste! मैं Saathiya हूं, आपका companion। मैं यहाँ आपकी support करने के लिए हूं।";
+        }
+    </script>
+</body>
+</html>

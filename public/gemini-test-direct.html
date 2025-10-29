@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct Gemini API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        #result { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Direct Gemini API Test (No SDK)</h1>
+    
+    <div class="test-section">
+        <h3>Test Direct HTTP Calls</h3>
+        <button onclick="testDirectFetch()">Test Direct Fetch API</button>
+        <button onclick="testGoogleSDK()">Test Google SDK</button>
+        <div id="result"></div>
+    </div>
+
+    <script type="module">
+        window.testDirectFetch = async function() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<div>🔄 Testing direct fetch...</div>';
+            
+            const apiKey = 'AIzaSyCKgsYbj0g9s9Ib-KoqqpKXnNT_9ZZjqms';
+            const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+            
+            for (const model of modelsToTry) {
+                try {
+                    console.log('Testing model:', model);
+                    
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-goog-api-key': apiKey
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: "You are Saathiya, an empathetic AI companion for Indian youth. Respond supportively and briefly to: Hello, I'm feeling stressed about my exams."
+                                }]
+                            }]
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    const text = data.candidates[0].content.parts[0].text;
+                    
+                    result.innerHTML = `
+                        <div class="success">
+                            <h4>✅ Direct Fetch SUCCESS with ${model}</h4>
+                            <p><strong>Response:</strong></p>
+                            <pre>${text}</pre>
+                        </div>
+                    `;
+                    return; // Success, stop trying other models
+                    
+                } catch (error) {
+                    console.error('Model failed:', model, error);
+                    result.innerHTML += `<div class="error">❌ ${model}: ${error.message}</div>`;
+                }
+            }
+            
+            result.innerHTML += '<div class="error"><h4>❌ All models failed with direct fetch</h4></div>';
+        };
+        
+        window.testGoogleSDK = async function() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<div>🔄 Testing Google SDK...</div>';
+            
+            try {
+                const { GoogleGenerativeAI } = await import('https://esm.run/@google/generative-ai');
+                const apiKey = 'AIzaSyCKgsYbj0g9s9Ib-KoqqpKXnNT_9ZZjqms';
+                const genAI = new GoogleGenerativeAI(apiKey);
+                
+                const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+                
+                for (const modelName of modelsToTry) {
+                    try {
+                        console.log('SDK Testing model:', modelName);
+                        
+                        const model = genAI.getGenerativeModel({ 
+                            model: modelName,
+                            generationConfig: {
+                                temperature: 0.7,
+                                maxOutputTokens: 500
+                            }
+                        });
+                        
+                        const prompt = "You are Saathiya, an empathetic AI companion for Indian youth. Respond supportively and briefly to: Hello, I'm feeling stressed about my exams.";
+                        const resultObj = await model.generateContent(prompt);
+                        const response = await resultObj.response;
+                        const text = response.text();
+                        
+                        result.innerHTML = `
+                            <div class="success">
+                                <h4>✅ Google SDK SUCCESS with ${modelName}</h4>
+                                <p><strong>Response:</strong></p>
+                                <pre>${text}</pre>
+                            </div>
+                        `;
+                        return; // Success
+                        
+                    } catch (modelError) {
+                        console.error('SDK Model failed:', modelName, modelError);
+                        result.innerHTML += `<div class="error">❌ SDK ${modelName}: ${modelError.message}</div>`;
+                    }
+                }
+                
+                result.innerHTML += '<div class="error"><h4>❌ All models failed with Google SDK</h4></div>';
+                
+            } catch (error) {
+                result.innerHTML = `<div class="error"><h4>❌ SDK Import Failed</h4><p>${error.message}</p></div>`;
+            }
+        };
+    </script>
+</body>
+</html>
