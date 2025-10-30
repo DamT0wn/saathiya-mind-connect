@@ -68,10 +68,10 @@ export const GoogleAuth: React.FC = () => {
         }
       );
 
-      // Show One Tap prompt
-      window.google.accounts.id.prompt((notification: any) => {
-        console.log('Google One Tap notification:', notification);
-      });
+      // Disable One Tap prompt to prevent redirect issues
+      // window.google.accounts.id.prompt((notification: any) => {
+      //   console.log('Google One Tap notification:', notification);
+      // });
     }
   };
 

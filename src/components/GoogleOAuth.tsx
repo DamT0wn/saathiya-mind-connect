@@ -70,8 +70,8 @@ export const GoogleOAuth: React.FC = () => {
         });
       }
 
-      // Show One Tap prompt for returning users
-      window.google.accounts.id.prompt();
+      // Disable One Tap prompt to prevent redirect issues
+      // window.google.accounts.id.prompt();
     }
   };
 

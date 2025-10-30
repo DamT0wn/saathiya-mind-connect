@@ -31,8 +31,7 @@ api/
     "api/test.js": { "runtime": "@vercel/node@20" }
   },
   "rewrites": [
-    { "source": "/callback", "destination": "/api/oauth-callback" },
-    { "source": "/test", "destination": "/api/test" }
+    { "source": "/callback", "destination": "/api/auth-callback" }
   ]
 }
 ```
