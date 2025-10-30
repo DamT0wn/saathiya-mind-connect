@@ -2,19 +2,7 @@
   "rewrites": [
     {
       "source": "/callback",
-      "destination": "/api/auth-handler"
-    },
-    {
-      "source": "/auth/(.*)",
-      "destination": "/api/auth/$1"
-    },
-    {
-      "source": "/health",
-      "destination": "/api/health"
-    },
-    {
-      "source": "/test",
-      "destination": "/api/test"
+      "destination": "/api/auth-callback"
     }
   ]
 }
