@@ -1,25 +1,12 @@
 {
-  "functions": {
-    "api/server.js": {
-      "runtime": "@vercel/node"
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/auth/(.*)",
-      "destination": "/api/server?url=/auth/$1"
-    },
-    {
-      "source": "/api/health",
-      "destination": "/api/server?url=/health"
-    },
-    {
       "source": "/auth/(.*)",
-      "destination": "/api/server?url=/auth/$1"
+      "destination": "/api/auth/$1"
     },
     {
       "source": "/health",
-      "destination": "/api/server?url=/health"
+      "destination": "/api/health"
     }
   ]
 }
