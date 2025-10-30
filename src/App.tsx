@@ -10,6 +10,7 @@ import AIEmpathyEngine from "./pages/AIEmpathyEngine";
 import CrisisSupport from "./pages/CrisisSupport";
 import MoodDashboard from "./pages/MoodDashboard";
 import ResourceCenter from "./pages/ResourceCenter";
+import { Login } from "./pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/ai-chat" element={<AIEmpathyEngine />} />
             <Route path="/crisis-support" element={<CrisisSupport />} />
             <Route path="/mood-dashboard" element={<MoodDashboard />} />
