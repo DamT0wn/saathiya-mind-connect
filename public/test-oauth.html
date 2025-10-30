@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google OAuth Test - Saathi</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .user-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: left;
+        }
+        #googleSignInDiv {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Google OAuth 2.0 Test</h1>
+        <p>Test your Google Sign-In configuration for Saathi</p>
+        
+        <div id="status" class="status info">
+            ⏳ Initializing Google Sign-In...
+        </div>
+
+        <!-- Google Sign-In Button Container -->
+        <div id="googleSignInDiv"></div>
+        
+        <!-- Alternative method using data attributes -->
+        <div id="g_id_onload"
+             data-client_id="1071099308535-2qtfl9qa0168of5mvoo2hmec92so8hj4.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        
+        <div id="userInfo" class="user-info" style="display: none;">
+            <h3>✅ Authentication Successful!</h3>
+            <div id="userData"></div>
+            <button onclick="signOut()" style="margin-top: 10px; padding: 8px 15px;">Sign Out</button>
+        </div>
+        
+        <div id="debugInfo" class="user-info" style="display: none;">
+            <h4>🔍 Debug Information</h4>
+            <pre id="debugContent"></pre>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        function updateStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+
+        function showDebugInfo(data) {
+            const debugDiv = document.getElementById('debugInfo');
+            const debugContent = document.getElementById('debugContent');
+            debugContent.textContent = JSON.stringify(data, null, 2);
+            debugDiv.style.display = 'block';
+        }
+
+        // Global callback function for Google
+        function handleCredentialResponse(response) {
+            console.log('🔑 Credential received:', response);
+            updateStatus('📤 Sending credential to backend...', 'info');
+            
+            showDebugInfo({
+                action: 'Google Credential Received',
+                credentialLength: response.credential?.length,
+                timestamp: new Date().toISOString()
+            });
+
+            // Send to your backend
+            fetch('http://localhost:3001/auth/callback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    credential: response.credential
+                })
+            })
+            .then(async (res) => {
+                console.log('📥 Backend response status:', res.status);
+                
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    throw new Error(`HTTP ${res.status}: ${errorText}`);
+                }
+                
+                return res.json();
+            })
+            .then(data => {
+                console.log('✅ Backend response:', data);
+                updateStatus('✅ Authentication successful!', 'success');
+                
+                currentUser = data.user;
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('userData').innerHTML = `
+                    <strong>Name:</strong> ${data.user.name}<br>
+                    <strong>Email:</strong> ${data.user.email}<br>
+                    <strong>ID:</strong> ${data.user.id}<br>
+                    <img src="${data.user.picture}" alt="Profile" width="50" style="border-radius: 25px; margin-top: 10px;">
+                `;
+                
+                showDebugInfo({
+                    action: 'Authentication Success',
+                    user: data.user,
+                    tokenLength: data.token?.length,
+                    timestamp: new Date().toISOString()
+                });
+            })
+            .catch(error => {
+                console.error('❌ Authentication failed:', error);
+                updateStatus(`❌ Authentication failed: ${error.message}`, 'error');
+                
+                showDebugInfo({
+                    action: 'Authentication Error',
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+            });
+        }
+
+        function signOut() {
+            google.accounts.id.disableAutoSelect();
+            currentUser = null;
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('debugInfo').style.display = 'none';
+            updateStatus('🔓 Signed out successfully', 'info');
+        }
+
+        // Initialize Google Sign-In when the page loads
+        window.onload = function() {
+            if (typeof google !== 'undefined') {
+                initializeGoogleSignIn();
+            } else {
+                // Wait for Google script to load
+                const checkGoogle = setInterval(() => {
+                    if (typeof google !== 'undefined') {
+                        clearInterval(checkGoogle);
+                        initializeGoogleSignIn();
+                    }
+                }, 100);
+            }
+        };
+
+        function initializeGoogleSignIn() {
+            try {
+                google.accounts.id.initialize({
+                    client_id: '1071099308535-2qtfl9qa0168of5mvoo2hmec92so8hj4.apps.googleusercontent.com',
+                    callback: handleCredentialResponse
+                });
+
+                google.accounts.id.renderButton(
+                    document.getElementById('googleSignInDiv'),
+                    {
+                        theme: 'outline',
+                        size: 'large',
+                        text: 'signin_with',
+                        shape: 'rectangular'
+                    }
+                );
+
+                updateStatus('🟢 Google Sign-In initialized successfully', 'success');
+                
+            } catch (error) {
+                console.error('❌ Failed to initialize Google Sign-In:', error);
+                updateStatus(`❌ Failed to initialize: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>

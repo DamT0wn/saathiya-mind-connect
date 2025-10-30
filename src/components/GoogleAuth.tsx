@@ -45,11 +45,15 @@ export const GoogleAuth: React.FC = () => {
 
   const initializeGoogle = () => {
     if (window.google) {
+      // Initialize Google Identity Services
       window.google.accounts.id.initialize({
-        client_id: 'YOUR_GOOGLE_CLIENT_ID', // Replace with your actual client ID
+        client_id: '1071099308535-2qtfl9qa0168of5mvoo2hmec92so8hj4.apps.googleusercontent.com', // Your actual client ID
         callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: true,
       });
 
+      // Render the sign-in button
       window.google.accounts.id.renderButton(
         document.getElementById('googleSignInDiv'),
         {
@@ -57,14 +61,27 @@ export const GoogleAuth: React.FC = () => {
           size: 'large',
           text: 'signin_with',
           shape: 'rectangular',
+          width: 300,
         }
       );
+
+      // Also show the One Tap prompt
+      window.google.accounts.id.prompt((notification: any) => {
+        console.log('Google One Tap notification:', notification);
+      });
     }
   };
 
   const handleCredentialResponse = async (response: any) => {
+    console.log('🔑 Google credential response received:', response);
     setIsLoading(true);
+    
     try {
+      if (!response.credential) {
+        throw new Error('No credential received from Google');
+      }
+
+      console.log('📤 Sending credential to backend...');
       const res = await fetch('http://localhost:3001/auth/callback', {
         method: 'POST',
         headers: {
@@ -75,11 +92,16 @@ export const GoogleAuth: React.FC = () => {
         }),
       });
 
+      console.log('📥 Backend response status:', res.status);
+      
       if (!res.ok) {
-        throw new Error('Authentication failed');
+        const errorData = await res.text();
+        console.error('❌ Backend error response:', errorData);
+        throw new Error(`Authentication failed: ${res.status}`);
       }
 
       const data = await res.json();
+      console.log('✅ Authentication successful:', data);
       
       // Store the JWT token
       localStorage.setItem('authToken', data.token);
@@ -88,8 +110,9 @@ export const GoogleAuth: React.FC = () => {
       setUser(data.user);
       setIsLoading(false);
     } catch (error) {
-      console.error('Auth error:', error);
+      console.error('❌ Auth error:', error);
       setIsLoading(false);
+      // You might want to show an error message to the user here
     }
   };
 

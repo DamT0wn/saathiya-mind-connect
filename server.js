@@ -1,11 +1,12 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-const compression = require('compression');
-const jwt = require('jsonwebtoken');
-const axios = require('axios');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
+import axios from 'axios';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,15 +34,16 @@ const limiter = rateLimit({
 });
 
 app.use(limiter);
-app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 
 // CORS configuration
 const corsOptions = {
   origin: [
-    'http://localhost:8082', // Vite dev server
-    'http://localhost:3000', // OAuth server
+    'http://localhost:8083', // Vite dev server
+    'http://localhost:8082', // Backup port
+    'http://localhost:3001', // OAuth server
     'https://saathi-mind-connect.vercel.app', // Production frontend
+    process.env.CLIENT_URL,
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true,
@@ -139,12 +141,15 @@ app.get('/health', (req, res) => {
 // OAuth callback endpoint
 app.post('/auth/callback', async (req, res) => {
   console.log('🚀 OAuth callback received');
+  console.log('📋 Request body:', req.body);
+  console.log('📋 Request headers:', req.headers);
   
   try {
     const { credential } = req.body;
     
     if (!credential) {
-      console.error('❌ No credential provided');
+      console.error('❌ No credential provided in request body');
+      console.log('📋 Full request body:', JSON.stringify(req.body, null, 2));
       return res.status(400).json({ 
         success: false, 
         error: 'No credential provided' 
@@ -281,4 +286,4 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-module.exports = app;
+export default app;

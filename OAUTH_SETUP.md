@@ -43,10 +43,11 @@ This guide will help you set up Google OAuth 2.0 authentication for the Saathi m
 4. Set the following:
    - **Name**: Saathi Web Client
    - **Authorized JavaScript origins**: 
-     - `http://localhost:8082`
-     - `http://localhost:3001`
+     - `http://localhost:8082` (Vite dev server)
+     - `http://localhost:3001` (OAuth server)
    - **Authorized redirect URIs**: 
-     - `http://localhost:3001/auth/callback`
+     - Leave this empty for web applications using Google Identity Services
+     - The callback is handled via JavaScript, not server redirects
 5. Click "Create"
 6. Copy the Client ID and Client Secret
 
@@ -87,10 +88,11 @@ This guide will help you set up Google OAuth 2.0 authentication for the Saathi m
 
 ## Step 8: Test the Authentication
 
-1. Open your browser to `http://localhost:8082`
-2. Click "Sign In" in the navigation
-3. Test the Google OAuth flow
-4. Verify that you can sign in and sign out successfully
+1. First, test with the debugging page: `http://localhost:8082/test-oauth.html`
+2. Check browser console for any errors
+3. Then test the main app: `http://localhost:8082`
+4. Click "Sign In" in the navigation
+5. Verify that you can sign in and sign out successfully
 
 ## Security Notes
 
