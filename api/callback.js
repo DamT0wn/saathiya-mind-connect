@@ -1,5 +1,5 @@
 // Vercel Serverless Function for Google OAuth Callback
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Set CORS headers
   const allowedOrigins = [
     'http://localhost:3000',
