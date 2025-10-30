@@ -158,6 +158,23 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    /* Prevent zoom on double tap */
+    touch-action: manipulation;
+    /* Improve touch scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent text selection on touch devices for better UX */
+  .no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Improve button touch targets */
+  button, .button {
+    touch-action: manipulation;
   }
   
   /* Custom scrollbar for wellness feel */
@@ -202,6 +219,18 @@
   
   .mood-emoji {
     @apply text-2xl transition-all duration-300 hover:scale-110 cursor-pointer;
+  }
+  
+  /* Mobile-specific optimizations */
+  .mobile-touch {
+    min-height: 44px; /* Apple's recommended touch target size */
+    min-width: 44px;
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  .mobile-container {
+    overflow-x: hidden;
+    width: 100%;
   }
 }
 

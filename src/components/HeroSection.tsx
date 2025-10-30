@@ -47,26 +47,26 @@ export function HeroSection() {
         <div className="text-center space-y-8 animate-fade-up">
           {/* Main Heading */}
           <div className="space-y-4">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white text-balance">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-white text-balance leading-tight">
               Aapka Saathi<br />
               <span className="text-wellness-calm">Aapke Saath</span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 max-w-3xl mx-auto text-balance">
+            <p className="text-lg sm:text-xl md:text-2xl text-white/90 max-w-3xl mx-auto text-balance px-4">
               India's first AI-powered mental wellness companion designed for young minds. 
               Safe, confidential, and culturally-tuned support whenever you need it.
             </p>
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button variant="hero" size="xl" className="animate-scale-in" onClick={handleStartChat}>
-              <MessageCircle className="mr-2 h-5 w-5" />
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-center px-4">
+            <Button variant="hero" size="xl" className="animate-scale-in w-full sm:w-auto" onClick={handleStartChat}>
+              <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               Start Chatting Now
             </Button>
             <Button
               variant="outline"
               size="xl"
-              className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white hover:animate-scale-in"
+              className="bg-white/10 border-white/30 text-white hover:bg-white/20 hover:text-white hover:animate-scale-in w-full sm:w-auto"
               onClick={handleLearnMore}
             >
               Learn More
@@ -74,29 +74,29 @@ export function HeroSection() {
           </div>
 
           {/* Trust Indicators */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto">
-            <Card className="p-6 card-gradient border-0 text-center animate-fade-up" style={{ animationDelay: "0.2s" }}>
-              <Shield className="h-8 w-8 mx-auto mb-3 text-primary" />
-              <h3 className="font-semibold text-card-foreground">100% Private</h3>
-              <p className="text-sm text-muted-foreground">End-to-end encrypted</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mt-12 sm:mt-16 max-w-4xl mx-auto px-4">
+            <Card className="p-3 sm:p-4 md:p-6 card-gradient border-0 text-center animate-fade-up" style={{ animationDelay: "0.2s" }}>
+              <Shield className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 sm:mb-3 text-primary" />
+              <h3 className="text-sm sm:text-base font-semibold text-card-foreground">100% Private</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">End-to-end encrypted</p>
             </Card>
             
-            <Card className="p-6 card-gradient border-0 text-center animate-fade-up" style={{ animationDelay: "0.4s" }}>
-              <Heart className="h-8 w-8 mx-auto mb-3 text-success" />
-              <h3 className="font-semibold text-card-foreground">24/7 Support</h3>
-              <p className="text-sm text-muted-foreground">Always here for you</p>
+            <Card className="p-3 sm:p-4 md:p-6 card-gradient border-0 text-center animate-fade-up" style={{ animationDelay: "0.4s" }}>
+              <Heart className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 sm:mb-3 text-success" />
+              <h3 className="text-sm sm:text-base font-semibold text-card-foreground">24/7 Support</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Always here for you</p>
             </Card>
             
-            <Card className="p-6 card-gradient border-0 text-center animate-fade-up" style={{ animationDelay: "0.6s" }}>
-              <Users className="h-8 w-8 mx-auto mb-3 text-accent" />
-              <h3 className="font-semibold text-card-foreground">Youth-Focused</h3>
-              <p className="text-sm text-muted-foreground">Built for ages 14-25</p>
+            <Card className="p-3 sm:p-4 md:p-6 card-gradient border-0 text-center animate-fade-up" style={{ animationDelay: "0.6s" }}>
+              <Users className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 sm:mb-3 text-accent" />
+              <h3 className="text-sm sm:text-base font-semibold text-card-foreground">Youth-Focused</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Built for ages 14-25</p>
             </Card>
             
-            <Card className="p-6 card-gradient border-0 text-center animate-fade-up" style={{ animationDelay: "0.8s" }}>
-              <MessageCircle className="h-8 w-8 mx-auto mb-3 text-wellness-calm" />
-              <h3 className="font-semibold text-card-foreground">Culturally Aware</h3>
-              <p className="text-sm text-muted-foreground">Understands Indian context</p>
+            <Card className="p-3 sm:p-4 md:p-6 card-gradient border-0 text-center animate-fade-up" style={{ animationDelay: "0.8s" }}>
+              <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 sm:mb-3 text-wellness-calm" />
+              <h3 className="text-sm sm:text-base font-semibold text-card-foreground">Culturally Aware</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground">Understands Indian context</p>
             </Card>
           </div>
         </div>

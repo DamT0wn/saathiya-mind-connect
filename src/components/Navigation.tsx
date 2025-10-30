@@ -111,7 +111,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-1">
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = isCurrentPage(item.route) || activeSection === item.id;
@@ -143,7 +143,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
           </div>
 
           {/* Settings Button */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden lg:flex items-center space-x-2">
             <Button
               variant="outline"
               size="icon"
@@ -154,7 +154,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="lg:hidden">
             <Button
               variant="ghost"
               size="icon"
@@ -171,7 +171,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
+          <div className="lg:hidden border-t border-gray-200 py-4">
             <div className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon;

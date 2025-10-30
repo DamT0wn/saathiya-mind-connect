@@ -16,19 +16,10 @@ import {
 const features = [
   {
     icon: MessageCircle,
-    title: "Floating Chatbot",
-    description: "AI-powered companion accessible from anywhere on the site with instant support and guidance. Click the chat button to start your wellness journey.",
+    title: "AI Chatbot",
+    description: "AI-powered companion accessible from anywhere on the site with instant support and guidance. Advanced sentiment analysis with empathetic responses in Hindi and English.",
     badge: "Available Now",
     color: "bg-primary",
-    status: "available",
-    route: null
-  },
-  {
-    icon: Brain,
-    title: "AI Empathy Engine",
-    description: "Advanced sentiment analysis that understands emotions and provides personalized, empathetic responses in Hindi and English.",
-    badge: "Available Now",
-    color: "bg-wellness-energy", 
     status: "available",
     route: "/ai-chat"
   },
@@ -82,12 +73,9 @@ export function Features({ onFeatureClick }: FeaturesProps) {
     if (feature.status === 'available') {
       if (feature.external && feature.href) {
         window.open(feature.href, '_blank', 'noopener');
-      } else if (feature.title === 'Floating Chatbot') {
-        // Scroll to chatbot or trigger it
-        const chatButton = document.querySelector('[data-floating-chat]');
-        if (chatButton) {
-          (chatButton as HTMLElement).click();
-        }
+      } else if (feature.title === 'AI Chatbot') {
+        // Navigate to AI chat page
+        navigate('/ai-chat');
       } else if (feature.route) {
         navigate(feature.route);
       } else if (onFeatureClick) {
@@ -97,19 +85,19 @@ export function Features({ onFeatureClick }: FeaturesProps) {
   };
 
   return (
-    <section className="py-20 bg-background" id="features">
+    <section className="py-12 sm:py-16 md:py-20 bg-background" id="features">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             Mental Wellness Features
           </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
             Discover our comprehensive suite of mental health tools designed specifically for your needs. 
             Some features are available now, others are Explore.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 lg:gap-8 max-w-4xl mx-auto">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             const isAvailable = feature.status === 'available';
@@ -117,7 +105,7 @@ export function Features({ onFeatureClick }: FeaturesProps) {
             return (
               <Card 
                 key={index} 
-                className={`shadow-wellness border-0 transition-all duration-300 hover:-translate-y-1 animate-fade-up ${
+                className={`shadow-wellness border-0 transition-all duration-300 hover:-translate-y-1 animate-fade-up h-full ${
                   isAvailable 
                     ? 'hover:shadow-medium cursor-pointer' 
                     : 'opacity-75 cursor-not-allowed'
@@ -125,10 +113,10 @@ export function Features({ onFeatureClick }: FeaturesProps) {
                 style={{ animationDelay: `${index * 0.1}s` }}
                 onClick={() => handleFeatureClick(feature)}
               >
-                <CardHeader className="pb-4">
+                <CardHeader className="pb-3 sm:pb-4">
                   <div className="flex items-start justify-between">
-                    <div className={`${feature.color} p-3 rounded-lg text-white mb-3 relative`}>
-                      <IconComponent className="h-6 w-6" />
+                    <div className={`${feature.color} p-2 sm:p-3 rounded-lg text-white mb-2 sm:mb-3 relative`}>
+                      <IconComponent className="h-5 w-5 sm:h-6 sm:w-6" />
                       {isAvailable && (
                         <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white">
                         </div>
@@ -144,13 +132,13 @@ export function Features({ onFeatureClick }: FeaturesProps) {
                       {feature.badge}
                     </Badge>
                   </div>
-                  <CardTitle className="text-lg flex items-center gap-2">
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2 leading-tight">
                     {feature.title}
-                    {isAvailable && <Sparkles className="h-4 w-4 text-primary" />}
+                    {isAvailable && <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-primary" />}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground leading-relaxed mb-4">
+                <CardContent className="flex-1 flex flex-col">
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4 flex-1">
                     {feature.description}
                   </p>
                   
