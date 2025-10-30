@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Navigation } from "@/components/Navigation";
 import { MoodAnalytics } from "@/components/MoodAnalytics";
-import { AdvancedMoodTracker } from "@/components/AdvancedMoodTracker";
+import { MoodTracker } from "@/components/MoodTracker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -333,11 +333,7 @@ const MoodDashboard = () => {
                   ×
                 </Button>
               </div>
-              <AdvancedMoodTracker
-                onSave={(data) => {
-                  console.log('Mood data saved:', data);
-                  setShowMoodTracker(false);
-                }}
+              <MoodTracker
                 onClose={() => setShowMoodTracker(false)}
               />
             </div>

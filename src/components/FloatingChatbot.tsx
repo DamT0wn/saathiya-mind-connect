@@ -35,7 +35,7 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-40">
+    <div className="fixed bottom-6 right-3 z-40">
       {/* Floating Chat Button (when closed) */}
       {!isOpen && (
         <div className="relative">
@@ -57,10 +57,10 @@ export function FloatingChatbot({ onMaximize }: FloatingChatbotProps) {
           
           {/* Welcome tooltip */}
           <div className="absolute bottom-full right-0 mb-2 opacity-0 hover:opacity-100 transition-opacity duration-300">
-              <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            <div className="bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap">
+              Hi! I'm Saathi. Click to start chatting! 
             </div>
-              <div className="bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap">
-              Hi! I'm Saathi. Click to start chatting! 
+            <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
           </div>
         </div>
       )}

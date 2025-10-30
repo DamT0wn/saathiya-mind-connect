@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, TrendingUp, Heart } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Calendar, TrendingUp, Heart, Plus, X } from "lucide-react";
+import { useChatContext } from "@/contexts/ChatContext";
 
 const moodOptions = [
   { emoji: "😄", label: "Excellent", value: 5, color: "text-success" },
@@ -11,21 +15,87 @@ const moodOptions = [
   { emoji: "😢", label: "Struggling", value: 1, color: "text-destructive" },
 ];
 
-export function MoodTracker() {
+interface MoodTrackerProps {
+  onClose?: () => void;
+}
+
+export function MoodTracker({ onClose }: MoodTrackerProps = {}) {
+  const { updateMood } = useChatContext();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  
+  // Advanced mood tracking fields
+  const [notes, setNotes] = useState("");
+  const [triggers, setTriggers] = useState<string[]>([]);
+  const [newTrigger, setNewTrigger] = useState("");
+  const [factors, setFactors] = useState({
+    sleep: 5,
+    exercise: 5,
+    social: 5,
+    work: 5,
+    health: 5
+  });
 
   const handleMoodSelect = (value: number) => {
     setSelectedMood(value);
   };
 
+  const handleAddTrigger = () => {
+    if (newTrigger.trim() && !triggers.includes(newTrigger.trim())) {
+      setTriggers([...triggers, newTrigger.trim()]);
+      setNewTrigger("");
+    }
+  };
+
+  const handleRemoveTrigger = (trigger: string) => {
+    setTriggers(triggers.filter(t => t !== trigger));
+  };
+
+  const handleFactorChange = (factor: string, value: number) => {
+    setFactors(prev => ({ ...prev, [factor]: value }));
+  };
+
   const handleSubmit = () => {
     if (selectedMood) {
+      const selectedMoodOption = moodOptions.find(m => m.value === selectedMood);
+      
+      // Create comprehensive mood entry
+      const moodEntry = {
+        primary: selectedMoodOption?.label.toLowerCase() || 'neutral',
+        intensity: selectedMood,
+        secondaryEmotions: [],
+        notes: notes.trim(),
+        triggers: triggers,
+        factors: factors,
+        timestamp: new Date()
+      };
+
+      // Save to context/localStorage
+      updateMood(moodEntry);
+      
       setIsSubmitted(true);
-      // Here you would typically save to database
+      
+      // Reset form after success message
       setTimeout(() => {
         setIsSubmitted(false);
         setSelectedMood(null);
+        setNotes("");
+        setTriggers([]);
+        setNewTrigger("");
+        setFactors({
+          sleep: 5,
+          exercise: 5,
+          social: 5,
+          work: 5,
+          health: 5
+        });
+        setShowAdvanced(false);
+        
+        // Call onClose if provided (for modal usage)
+        if (onClose) {
+          onClose();
+        }
       }, 3000);
     }
   };
@@ -91,6 +161,99 @@ export function MoodTracker() {
                 ))}
               </div>
             </div>
+
+            {/* Advanced Options Toggle */}
+            {selectedMood && (
+              <div className="text-center">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="text-sm"
+                >
+                  {showAdvanced ? 'Hide' : 'Show'} Advanced Options
+                </Button>
+              </div>
+            )}
+
+            {/* Advanced Mood Tracking */}
+            {showAdvanced && selectedMood && (
+              <div className="space-y-6 border-t pt-6">
+                {/* Life Factors */}
+                <div className="space-y-4">
+                  <Label className="text-base font-semibold">Life Factors (Rate 1-10)</Label>
+                  {Object.entries(factors).map(([factor, value]) => (
+                    <div key={factor} className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label className="capitalize">{factor}</Label>
+                        <span className="text-sm text-muted-foreground">{value}/10</span>
+                      </div>
+                      <Input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={value}
+                        onChange={(e) => handleFactorChange(factor, parseInt(e.target.value))}
+                        className="w-full"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Triggers */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">What triggered this mood?</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Add a trigger (e.g., work stress, family)"
+                      value={newTrigger}
+                      onChange={(e) => setNewTrigger(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddTrigger()}
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={handleAddTrigger}
+                      size="icon"
+                      variant="outline"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {triggers.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {triggers.map((trigger) => (
+                        <span
+                          key={trigger}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-secondary rounded-md text-sm"
+                        >
+                          {trigger}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-4 w-4 p-0"
+                            onClick={() => handleRemoveTrigger(trigger)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-2">
+                  <Label htmlFor="notes" className="text-base font-semibold">Additional Notes</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="How are you feeling? What's on your mind? (optional)"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="min-h-[80px]"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Submit Button */}
             <div className="text-center pt-4">

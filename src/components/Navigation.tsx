@@ -42,7 +42,20 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
       return;
     }
 
-    if (typeof item.route === 'string' && item.route.startsWith('/#')) {
+    if (item.id === 'home' || item.route === '/') {
+      // Handle Home button - always scroll to top smoothly
+      if (location.pathname === '/') {
+        // Already on home page, just scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        // Navigate to home and scroll to top
+        navigate('/');
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+      }
+      onSectionClick('home');
+    } else if (typeof item.route === 'string' && item.route.startsWith('/#')) {
       // Handle section scrolling on home page
       if (location.pathname !== '/') {
         navigate('/');
@@ -80,7 +93,13 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
           {/* Logo */}
           <div 
             className="flex items-center space-x-3 cursor-pointer"
-            onClick={() => navigate('/')}
+            onClick={() => {
+              if (location.pathname === '/') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else {
+                navigate('/');
+              }
+            }}
           >
             <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-primary to-wellness-calm rounded-lg">
               <Brain className="h-6 w-6 text-white" />

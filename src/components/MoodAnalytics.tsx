@@ -6,7 +6,7 @@ import { useChatContext } from '@/contexts/ChatContext';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Calendar, TrendingUp, TrendingDown, BarChart3, Activity } from 'lucide-react';
 import { format, subDays, startOfDay, endOfDay, isAfter, isBefore } from 'date-fns';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 
 interface MoodAnalyticsProps {
   onClose: () => void;
@@ -14,10 +14,15 @@ interface MoodAnalyticsProps {
 }
 
 export function MoodAnalytics({ onClose, modal = true }: MoodAnalyticsProps) {
-  const { state } = useChatContext();
+  const { state, dispatch } = useChatContext();
   const { moodHistory } = state.context;
 
-  // Prepare data for charts
+  // Auto-refresh when mood data changes
+  useEffect(() => {
+    console.log('Mood Analytics refreshed - entries count:', moodHistory.length);
+  }, [moodHistory]);
+
+  // Prepare data for charts with better date handling
   const last7Days = useMemo(() => (
     Array.from({ length: 7 }, (_, i) => {
       const date = subDays(new Date(), i);
@@ -26,7 +31,9 @@ export function MoodAnalytics({ onClose, modal = true }: MoodAnalyticsProps) {
         fullDate: date,
         moods: moodHistory.filter(mood => {
           const moodDate = new Date(mood.timestamp);
-          return isAfter(moodDate, startOfDay(date)) && isBefore(moodDate, endOfDay(date));
+          const dayStart = startOfDay(date);
+          const dayEnd = endOfDay(date);
+          return moodDate >= dayStart && moodDate <= dayEnd;
         })
       };
     }).reverse()
@@ -112,14 +119,8 @@ export function MoodAnalytics({ onClose, modal = true }: MoodAnalyticsProps) {
             Start tracking your mood to see insightful analytics about your mental wellness journey.
           </p>
           <div className="flex gap-3 justify-center">
-            <Button onClick={() => { /* open mood tracker via context flag */
-              // Consumers can listen to this flag to render tracker
-              // or you can navigate to a page if set up
-              // For now we reuse context toggler pattern
-              // Note: ChatContext has TOGGLE_MOOD_TRACKER action in reducer
-              // We'll dispatch UPDATE_CONTEXT to hint the UI if needed
-              // kept minimal to avoid larger refactor
-              // eslint-disable-next-line @typescript-eslint/no-empty-function
+              <Button onClick={() => {
+              dispatch({ type: 'TOGGLE_MOOD_TRACKER' });
             }}>
               Track Mood Now
             </Button>
@@ -184,8 +185,8 @@ export function MoodAnalytics({ onClose, modal = true }: MoodAnalyticsProps) {
                   <TrendingUp className="h-5 w-5 text-green-600" />
                   <div>
                     <p className="text-sm text-muted-foreground">Most Common</p>
-                    <p className="text-lg font-semibold">
-                      {moodDistributionData[0]?.name || 'N/A'}
+                    <p className="text-lg font-semibold capitalize">
+                      {moodDistributionData.length > 0 ? moodDistributionData[0].name : 'No data yet'}
                     </p>
                   </div>
                 </div>
