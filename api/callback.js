@@ -96,5 +96,64 @@ export default async function handler(req, res) {
     }
   }
 
+  if (req.method === 'POST') {
+    // Accept POST from Google Identity Services (credential) or from client
+    try {
+      let body = req.body;
+
+      // If body is a string (server may not have parsed it), try to parse
+      if (typeof body === 'string' && body.length) {
+        try {
+          body = JSON.parse(body);
+        } catch (e) {
+          // Try parsing urlencoded
+          const params = new URLSearchParams(body);
+          const parsed = {};
+          for (const [k, v] of params) parsed[k] = v;
+          body = parsed;
+        }
+      }
+
+      const credential = (body && (body.credential || body.id_token || body.idToken)) || null;
+
+      if (!credential) {
+        console.error('❌ No credential/id_token provided in POST body');
+        return res.status(400).json({ error: 'no_credential' });
+      }
+
+      // Verify ID token with Google's tokeninfo endpoint
+      const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
+
+      if (!verifyRes.ok) {
+        const txt = await verifyRes.text();
+        console.error('❌ tokeninfo failed:', verifyRes.status, txt);
+        return res.status(400).json({ error: 'invalid_token', details: txt });
+      }
+
+      const userInfo = await verifyRes.json();
+
+      // Minimal user payload to return
+      const user = {
+        id: userInfo.sub,
+        email: userInfo.email,
+        name: userInfo.name || userInfo.email,
+        picture: userInfo.picture || null,
+        issuer: userInfo.iss || null,
+        audience: userInfo.aud || null,
+      };
+
+      // Create a simple app token (base64 JSON) -- replace with signed JWT in prod
+      const appToken = Buffer.from(JSON.stringify({ id: user.id, email: user.email, iat: Date.now() })).toString('base64');
+
+      console.log('✅ POST /api/callback verified user:', user.email);
+
+      return res.status(200).json({ success: true, user, token: appToken });
+
+    } catch (error) {
+      console.error('❌ POST callback error:', error);
+      return res.status(500).json({ error: 'server_error', details: String(error) });
+    }
+  }
+
   return res.status(405).json({ error: 'Method not allowed' });
 }

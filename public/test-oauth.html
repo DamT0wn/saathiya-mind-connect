@@ -53,11 +53,12 @@
         <div id="googleSignInDiv"></div>
         
         <!-- Alternative method using data attributes -->
-        <div id="g_id_onload"
-             data-client_id="1071099308535-2qtfl9qa0168of5mvoo2hmec92so8hj4.apps.googleusercontent.com"
-             data-callback="handleCredentialResponse"
-             data-auto_prompt="false">
-        </div>
+       <div id="g_id_onload"
+           data-client_id="1071099308535-2qtfl9qa0168of5mvoo2hmec92so8hj4.apps.googleusercontent.com"
+           data-callback="handleCredentialResponse"
+           data-auto_prompt="false"
+           data-login_uri="/api/callback">
+       </div>
         
         <div id="userInfo" class="user-info" style="display: none;">
             <h3>✅ Authentication Successful!</h3>
@@ -99,7 +100,12 @@
             });
 
             // Send to your backend
-            fetch('http://localhost:3001/auth/callback', {
+            // Use local express endpoint when running locally (dev OAuth server), otherwise use the serverless API path
+            const backendUrl = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+              ? 'http://localhost:3001/auth/callback'
+              : '/api/callback';
+
+            fetch(backendUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
