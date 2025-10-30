@@ -181,7 +181,11 @@
             try {
                 google.accounts.id.initialize({
                     client_id: '1069787260321-vq914fbv10g3bad76joorhc4sha3cc69.apps.googleusercontent.com',
-                    callback: handleCredentialResponse
+                    callback: handleCredentialResponse,
+                    auto_select: false,
+                    cancel_on_tap_outside: true,
+                    ux_mode: 'popup',
+                    context: 'signin'
                 });
 
                 google.accounts.id.renderButton(
@@ -190,9 +194,16 @@
                         theme: 'outline',
                         size: 'large',
                         text: 'signin_with',
-                        shape: 'rectangular'
+                        shape: 'rectangular',
+                        width: 300,
+                        type: 'standard'
                     }
                 );
+
+                // Also show the One Tap prompt immediately
+                google.accounts.id.prompt((notification) => {
+                    console.log('Google One Tap notification:', notification);
+                });
 
                 updateStatus('🟢 Google Sign-In initialized successfully', 'success');
                 

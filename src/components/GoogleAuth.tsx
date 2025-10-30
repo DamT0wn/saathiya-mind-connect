@@ -47,10 +47,12 @@ export const GoogleAuth: React.FC = () => {
     if (window.google) {
       // Initialize Google Identity Services
       window.google.accounts.id.initialize({
-        client_id: '1071099308535-2qtfl9qa0168of5mvoo2hmec92so8hj4.apps.googleusercontent.com', // Your actual client ID
+        client_id: '1069787260321-vq914fbv10g3bad76joorhc4sha3cc69.apps.googleusercontent.com',
         callback: handleCredentialResponse,
         auto_select: false,
         cancel_on_tap_outside: true,
+        ux_mode: 'popup',
+        context: 'signin'
       });
 
       // Render the sign-in button
@@ -62,10 +64,11 @@ export const GoogleAuth: React.FC = () => {
           text: 'signin_with',
           shape: 'rectangular',
           width: 300,
+          type: 'standard'
         }
       );
 
-      // Also show the One Tap prompt
+      // Show One Tap prompt
       window.google.accounts.id.prompt((notification: any) => {
         console.log('Google One Tap notification:', notification);
       });
