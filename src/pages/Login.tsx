@@ -1,11 +1,20 @@
-import React from 'react';
-import { GoogleOAuth } from '../components/GoogleOAuth';
+import React, { useEffect } from 'react';
+import { FirebaseAuth } from '../components/FirebaseAuth';
 import { Button } from '../components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export function Login() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  // Redirect to home if already logged in
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/');
+    }
+  }, [currentUser, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-wellness-light via-white to-wellness-calm/20">
@@ -25,16 +34,7 @@ export function Login() {
         {/* Login Card */}
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-full max-w-md">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Welcome to Saathi
-              </h1>
-              <p className="text-gray-600">
-                Your mental wellness journey starts here
-              </p>
-            </div>
-            
-            <GoogleOAuth />
+            <FirebaseAuth />
             
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-500">

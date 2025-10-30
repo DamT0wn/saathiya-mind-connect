@@ -1,4 +1,27 @@
 // Vercel Serverless Function for Google OAuth Callback
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBU8lgQ8qW9cLx1_eK2RvTNY0VCZQOoddI",
+  authDomain: "saathi-96ddc.firebaseapp.com",
+  projectId: "saathi-96ddc",
+  storageBucket: "saathi-96ddc.firebasestorage.app",
+  messagingSenderId: "311646503359",
+  appId: "1:311646503359:web:8f0bf9994c7a9fdf4de10a",
+  measurementId: "G-10HYMXH45S"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
 export default async function handler(req, res) {
   // Set CORS headers
   const allowedOrigins = [

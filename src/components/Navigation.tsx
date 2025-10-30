@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserProfile } from '@/components/UserProfile';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -26,6 +28,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { currentUser } = useAuth();
 
   const navigationItems = [
     { id: 'home', label: 'Home', icon: Home, route: '/' },
@@ -145,22 +148,38 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
 
           {/* Auth & Settings Buttons */}
           <div className="hidden lg:flex items-center space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/login')}
-              className="flex items-center space-x-2"
-            >
-              <LogIn className="h-4 w-4" />
-              <span>Sign In</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onSectionClick('settings')}
-              className="rounded-full"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
+            {currentUser ? (
+              <>
+                <UserProfile />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => onSectionClick('settings')}
+                  className="rounded-full"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/login')}
+                  className="flex items-center space-x-2"
+                >
+                  <LogIn className="h-4 w-4" />
+                  <span>Sign In</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => onSectionClick('settings')}
+                  className="rounded-full"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </>
+            )}
           </div>
 
 
@@ -215,17 +234,19 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
               })}
               
               <div className="pt-2 border-t border-gray-200 space-y-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    navigate('/login');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full justify-start space-x-3 h-12"
-                >
-                  <LogIn className="h-5 w-5" />
-                  <span>Sign In</span>
-                </Button>
+                {!currentUser && (
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      navigate('/login');
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full justify-start space-x-3 h-12"
+                  >
+                    <LogIn className="h-5 w-5" />
+                    <span>Sign In</span>
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   onClick={() => onSectionClick('settings')}
