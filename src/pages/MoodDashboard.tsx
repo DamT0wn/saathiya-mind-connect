@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Navigation } from "@/components/Navigation";
 import { MoodAnalytics } from "@/components/MoodAnalytics";
 import { MoodTracker } from "@/components/MoodTracker";
+import { useChatContext } from "@/contexts/ChatContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,8 +24,15 @@ import { useNavigate } from 'react-router-dom';
 
 const MoodDashboard = () => {
   const navigate = useNavigate();
+  const { state } = useChatContext();
+  const { moodHistory } = state.context;
   const [showMoodTracker, setShowMoodTracker] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const handleSectionClick = (section: string) => {
     if (section === 'home') {
@@ -37,40 +45,141 @@ const MoodDashboard = () => {
     }
   };
 
-  const moodStats = [
-    {
-      icon: Heart,
-      title: "Average Mood",
-      value: "7.2/10",
-      change: "+0.8 from last week",
-      color: "bg-success",
-      trend: "up"
-    },
-    {
-      icon: Activity,
-      title: "Mood Entries",
-      value: "24",
-      change: "This month",
-      color: "bg-primary",
-      trend: "stable"
-    },
-    {
-      icon: TrendingUp,
-      title: "Improvement",
-      value: "23%",
-      change: "Over 30 days",
-      color: "bg-wellness-energy",
-      trend: "up"
-    },
-    {
-      icon: Target,
-      title: "Consistency",
-      value: "85%",
-      change: "Daily check-ins",
-      color: "bg-wellness-calm",
-      trend: "up"
+  // Calculate real mood statistics from ChatContext data
+  const moodStats = useMemo(() => {
+    if (!moodHistory || moodHistory.length === 0) {
+      return [
+        {
+          icon: Heart,
+          title: "Average Mood",
+          value: "No data",
+          change: "Start tracking your mood",
+          color: "bg-muted",
+          trend: "neutral"
+        },
+        {
+          icon: Activity,
+          title: "Mood Entries",
+          value: "0",
+          change: "This month",
+          color: "bg-muted",
+          trend: "neutral"
+        },
+        {
+          icon: TrendingUp,
+          title: "Improvement",
+          value: "0%",
+          change: "Over 30 days",
+          color: "bg-muted",
+          trend: "neutral"
+        },
+        {
+          icon: Target,
+          title: "Consistency",
+          value: "0%",
+          change: "Daily check-ins",
+          color: "bg-muted",
+          trend: "neutral"
+        }
+      ];
     }
-  ];
+
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const previousWeekStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    // Filter mood entries for different time periods
+    const recentEntries = moodHistory.filter(entry => new Date(entry.timestamp) > thirtyDaysAgo);
+    const thisWeekEntries = moodHistory.filter(entry => new Date(entry.timestamp) > sevenDaysAgo);
+    const lastWeekEntries = moodHistory.filter(entry => {
+      const entryDate = new Date(entry.timestamp);
+      return entryDate > previousWeekStart && entryDate <= sevenDaysAgo;
+    });
+
+    // Calculate average mood (last 30 days)
+    const averageMood = recentEntries.length > 0 
+      ? Number((recentEntries.reduce((sum, entry) => sum + entry.intensity, 0) / recentEntries.length).toFixed(1))
+      : 0;
+
+    // Calculate this week and last week averages
+    const thisWeekAvg = thisWeekEntries.length > 0 
+      ? thisWeekEntries.reduce((sum, entry) => sum + entry.intensity, 0) / thisWeekEntries.length
+      : 0;
+    const lastWeekAvg = lastWeekEntries.length > 0 
+      ? lastWeekEntries.reduce((sum, entry) => sum + entry.intensity, 0) / lastWeekEntries.length
+      : 0;
+
+    // Calculate weekly change
+    const weeklyChange = lastWeekAvg > 0 ? thisWeekAvg - lastWeekAvg : 0;
+    const weeklyChangeStr = weeklyChange > 0 ? `+${weeklyChange.toFixed(1)} from last week` :
+                           weeklyChange < 0 ? `${weeklyChange.toFixed(1)} from last week` :
+                           "Same as last week";
+
+    // Calculate improvement over 30 days
+    const firstHalfEntries = recentEntries.filter(entry => {
+      const entryDate = new Date(entry.timestamp);
+      const fifteenDaysAgo = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
+      return entryDate <= fifteenDaysAgo;
+    });
+    const secondHalfEntries = recentEntries.filter(entry => {
+      const entryDate = new Date(entry.timestamp);
+      const fifteenDaysAgo = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
+      return entryDate > fifteenDaysAgo;
+    });
+
+    const firstHalfAvg = firstHalfEntries.length > 0 
+      ? firstHalfEntries.reduce((sum, entry) => sum + entry.intensity, 0) / firstHalfEntries.length
+      : 0;
+    const secondHalfAvg = secondHalfEntries.length > 0 
+      ? secondHalfEntries.reduce((sum, entry) => sum + entry.intensity, 0) / secondHalfEntries.length
+      : 0;
+
+    const improvement = firstHalfAvg > 0 
+      ? Math.round(((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100)
+      : 0;
+
+    // Calculate consistency (unique days with entries in last 30 days)
+    const uniqueDays = new Set(recentEntries.map(entry => 
+      new Date(entry.timestamp).toDateString()
+    )).size;
+    const consistency = Math.round((uniqueDays / 30) * 100);
+
+    return [
+      {
+        icon: Heart,
+        title: "Average Mood",
+        value: averageMood > 0 ? `${averageMood}/10` : "No data",
+        change: weeklyChange !== 0 ? weeklyChangeStr : "No weekly data",
+        color: averageMood >= 7 ? "bg-success" : averageMood >= 5 ? "bg-wellness-energy" : averageMood > 0 ? "bg-destructive" : "bg-muted",
+        trend: weeklyChange > 0 ? "up" : weeklyChange < 0 ? "down" : "stable"
+      },
+      {
+        icon: Activity,
+        title: "Mood Entries",
+        value: recentEntries.length.toString(),
+        change: "This month",
+        color: recentEntries.length >= 20 ? "bg-success" : recentEntries.length >= 10 ? "bg-primary" : recentEntries.length > 0 ? "bg-wellness-energy" : "bg-muted",
+        trend: recentEntries.length >= 15 ? "up" : "stable"
+      },
+      {
+        icon: TrendingUp,
+        title: "Improvement",
+        value: `${improvement}%`,
+        change: "Over 30 days",
+        color: improvement > 0 ? "bg-success" : improvement < 0 ? "bg-destructive" : "bg-wellness-energy",
+        trend: improvement > 0 ? "up" : improvement < 0 ? "down" : "stable"
+      },
+      {
+        icon: Target,
+        title: "Consistency",
+        value: `${consistency}%`,
+        change: "Daily check-ins",
+        color: consistency >= 80 ? "bg-success" : consistency >= 60 ? "bg-wellness-calm" : consistency >= 30 ? "bg-wellness-energy" : "bg-muted",
+        trend: consistency >= 70 ? "up" : "stable"
+      }
+    ];
+  }, [moodHistory]);
 
   const insights = [
     {

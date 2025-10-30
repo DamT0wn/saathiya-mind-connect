@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,11 @@ import { useNavigate } from 'react-router-dom';
 const CrisisSupport = () => {
   const navigate = useNavigate();
   const [emergencyContacted, setEmergencyContacted] = useState(false);
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const handleSectionClick = (section: string) => {
     if (section === 'home') {
