@@ -84,7 +84,7 @@ export const GoogleAuth: React.FC = () => {
       // Determine the correct backend URL based on environment
       const backendUrl = window.location.hostname === 'localhost' 
         ? 'http://localhost:3001' 
-        : 'https://saathiya-mind-connect.vercel.app';
+        : 'https://saathiya-mind-connect.vercel.app/api';
 
       console.log('📤 Sending credential to backend:', backendUrl);
       const res = await fetch(`${backendUrl}/auth/callback`, {
@@ -125,7 +125,7 @@ export const GoogleAuth: React.FC = () => {
     try {
       const backendUrl = window.location.hostname === 'localhost' 
         ? 'http://localhost:3001' 
-        : 'https://saathiya-mind-connect.vercel.app';
+        : 'https://saathiya-mind-connect.vercel.app/api';
         
       const res = await fetch(`${backendUrl}/auth/profile`, {
         headers: {
@@ -151,7 +151,7 @@ export const GoogleAuth: React.FC = () => {
       if (token) {
         const backendUrl = window.location.hostname === 'localhost' 
           ? 'http://localhost:3001' 
-          : 'https://saathiya-mind-connect.vercel.app';
+          : 'https://saathiya-mind-connect.vercel.app/api';
           
         await fetch(`${backendUrl}/auth/logout`, {
           method: 'POST',

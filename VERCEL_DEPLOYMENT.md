@@ -57,8 +57,15 @@ vercel --prod
 
 ### Production URLs:
 - **Frontend**: `https://saathiya-mind-connect.vercel.app`
-- **OAuth Endpoints**: `https://saathiya-mind-connect.vercel.app/auth/*`
-- **Health Check**: `https://saathiya-mind-connect.vercel.app/health`
+- **OAuth Endpoints**: `https://saathiya-mind-connect.vercel.app/api/auth/*`
+- **Health Check**: `https://saathiya-mind-connect.vercel.app/api/health`
+
+### API Structure:
+```
+api/
+├── server.js          # Main serverless function
+└── package.json       # Dependencies for serverless functions
+```
 
 ### Local Development URLs:
 - **Frontend**: `http://localhost:8080`

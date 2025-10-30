@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "axios": "^1.6.2"
+  }
+}

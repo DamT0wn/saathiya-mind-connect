@@ -1,24 +1,25 @@
 {
   "functions": {
-    "server.js": {
-      "runtime": "nodejs18.x"
+    "api/server.js": {
+      "runtime": "@vercel/node"
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/auth/(.*)",
-      "dest": "/server.js"
+      "source": "/api/auth/(.*)",
+      "destination": "/api/server?url=/auth/$1"
     },
     {
-      "src": "/health",
-      "dest": "/server.js"
+      "source": "/api/health",
+      "destination": "/api/server?url=/health"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/auth/(.*)",
+      "destination": "/api/server?url=/auth/$1"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/server?url=/health"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
