@@ -57,7 +57,7 @@
            data-client_id="1071099308535-2qtfl9qa0168of5mvoo2hmec92so8hj4.apps.googleusercontent.com"
            data-callback="handleCredentialResponse"
            data-auto_prompt="false"
-           data-login_uri="/api/callback">
+             data-login_uri="/api/auth-handler">
        </div>
         
         <div id="userInfo" class="user-info" style="display: none;">
@@ -103,7 +103,7 @@
             // Use local express endpoint when running locally (dev OAuth server), otherwise use the serverless API path
             const backendUrl = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
               ? 'http://localhost:3001/auth/callback'
-              : '/api/callback';
+              : '/api/auth-handler';
 
             fetch(backendUrl, {
                 method: 'POST',
