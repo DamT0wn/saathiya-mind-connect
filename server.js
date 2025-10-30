@@ -141,18 +141,89 @@ app.get('/health', (req, res) => {
   });
 });
 
-// OAuth callback endpoint
+// OAuth callback endpoint for traditional OAuth flow
+app.get('/callback', async (req, res) => {
+  console.log('🚀 OAuth callback received (GET)');
+  console.log('📋 Query params:', req.query);
+  
+  const { code, state, error } = req.query;
+
+  if (error) {
+    console.error('❌ OAuth error:', error);
+    return res.redirect(`http://localhost:8080?error=${encodeURIComponent(error)}`);
+  }
+
+  if (!code) {
+    console.error('❌ No authorization code received');
+    return res.redirect(`http://localhost:8080?error=no_code`);
+  }
+
+  try {
+    console.log('� Exchanging authorization code for tokens...');
+
+    // Exchange authorization code for access token
+    const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        code: code,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        redirect_uri: 'http://localhost:3001/callback',
+        grant_type: 'authorization_code',
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorData = await tokenResponse.text();
+      console.error('❌ Token exchange failed:', errorData);
+      return res.redirect(`http://localhost:8080?error=token_exchange_failed`);
+    }
+
+    const tokens = await tokenResponse.json();
+    console.log('✅ Token exchange successful');
+
+    // Get user info from Google
+    const userResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${tokens.id_token}`);
+    
+    if (!userResponse.ok) {
+      console.error('❌ Failed to get user info');
+      return res.redirect(`http://localhost:8080?error=user_info_failed`);
+    }
+
+    const userInfo = await userResponse.json();
+    console.log('✅ User info retrieved:', userInfo.email);
+
+    // Generate user token
+    const userToken = Buffer.from(JSON.stringify({
+      id: userInfo.sub,
+      email: userInfo.email,
+      name: userInfo.name,
+      picture: userInfo.picture,
+      timestamp: Date.now()
+    })).toString('base64');
+
+    // Redirect to frontend with user token
+    return res.redirect(`http://localhost:8080?token=${userToken}&success=true`);
+
+  } catch (error) {
+    console.error('❌ Callback processing error:', error);
+    return res.redirect(`http://localhost:8080?error=processing_failed`);
+  }
+});
+
+// Legacy POST callback for Google Identity Services
 app.post('/auth/callback', async (req, res) => {
-  console.log('🚀 OAuth callback received');
+  console.log('� OAuth callback received (POST - Legacy)');
   console.log('📋 Request body:', req.body);
-  console.log('📋 Request headers:', req.headers);
   
   try {
     const { credential } = req.body;
     
     if (!credential) {
       console.error('❌ No credential provided in request body');
-      console.log('📋 Full request body:', JSON.stringify(req.body, null, 2));
       return res.status(400).json({ 
         success: false, 
         error: 'No credential provided' 

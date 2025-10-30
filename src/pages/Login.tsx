@@ -1,5 +1,5 @@
 import React from 'react';
-import { GoogleAuth } from '../components/GoogleAuth';
+import { GoogleOAuth } from '../components/GoogleOAuth';
 import { Button } from '../components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -34,7 +34,7 @@ export function Login() {
               </p>
             </div>
             
-            <GoogleAuth />
+            <GoogleOAuth />
             
             <div className="mt-8 text-center">
               <p className="text-sm text-gray-500">
