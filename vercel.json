@@ -1,12 +1,4 @@
 {
-  "functions": {
-    "api/oauth-callback.js": {
-      "runtime": "@vercel/node@20"
-    },
-    "api/test.js": {
-      "runtime": "@vercel/node@20"
-    }
-  },
   "rewrites": [
     {
       "source": "/callback",
