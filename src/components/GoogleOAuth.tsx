@@ -84,8 +84,10 @@ export const GoogleOAuth: React.FC = () => {
 
       // Send the credential to our backend
       const backendUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:8080/api/auth-callback'
+        ? `http://localhost:${window.location.port}/api/auth-callback`
         : 'https://saathiya-mind-connect.vercel.app/api/auth-callback';
+
+      console.log('📤 Sending to:', backendUrl);
 
       const res = await fetch(backendUrl, {
         method: 'POST',
