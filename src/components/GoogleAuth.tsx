@@ -81,8 +81,13 @@ export const GoogleAuth: React.FC = () => {
         throw new Error('No credential received from Google');
       }
 
-      console.log('📤 Sending credential to backend...');
-      const res = await fetch('http://localhost:3001/auth/callback', {
+      // Determine the correct backend URL based on environment
+      const backendUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001' 
+        : 'https://saathiya-mind-connect.vercel.app';
+
+      console.log('📤 Sending credential to backend:', backendUrl);
+      const res = await fetch(`${backendUrl}/auth/callback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +123,11 @@ export const GoogleAuth: React.FC = () => {
 
   const verifyToken = async (token: string) => {
     try {
-      const res = await fetch('http://localhost:3001/auth/profile', {
+      const backendUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3001' 
+        : 'https://saathiya-mind-connect.vercel.app';
+        
+      const res = await fetch(`${backendUrl}/auth/profile`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -140,7 +149,11 @@ export const GoogleAuth: React.FC = () => {
     try {
       const token = localStorage.getItem('authToken');
       if (token) {
-        await fetch('http://localhost:3001/auth/logout', {
+        const backendUrl = window.location.hostname === 'localhost' 
+          ? 'http://localhost:3001' 
+          : 'https://saathiya-mind-connect.vercel.app';
+          
+        await fetch(`${backendUrl}/auth/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,

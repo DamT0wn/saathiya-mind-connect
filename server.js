@@ -39,11 +39,14 @@ app.use(express.json({ limit: '10mb' }));
 // CORS configuration
 const corsOptions = {
   origin: [
-    'http://localhost:8083', // Vite dev server
+    'http://localhost:8080', // Current Vite dev server
+    'http://localhost:8081', // Backup port
     'http://localhost:8082', // Backup port
+    'http://localhost:8083', // Backup port
     'http://localhost:3001', // OAuth server
-    'https://saathi-mind-connect.vercel.app', // Production frontend
+    'https://saathiya-mind-connect.vercel.app', // Production frontend
     process.env.CLIENT_URL,
+    process.env.PRODUCTION_URL,
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true,
