@@ -12,6 +12,7 @@ import {
   BookOpen, 
   Users,
   Brain,
+  Settings,
   TrendingUp
 } from 'lucide-react';
 
@@ -141,6 +142,18 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
             })}
           </div>
 
+          {/* Settings Button */}
+          <div className="hidden lg:flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onSectionClick('settings')}
+              className="rounded-full"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+
 
 
           {/* Mobile Menu Button */}
@@ -191,6 +204,17 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
                   </Button>
                 );
               })}
+              
+              <div className="pt-2 border-t border-gray-200">
+                <Button
+                  variant="ghost"
+                  onClick={() => onSectionClick('settings')}
+                  className="w-full justify-start space-x-3 h-12"
+                >
+                  <Settings className="h-5 w-5" />
+                  <span>Settings</span>
+                </Button>
+              </div>
 
             </div>
           </div>
