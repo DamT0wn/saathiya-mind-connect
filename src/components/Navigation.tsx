@@ -37,7 +37,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
     { id: 'crisis', label: 'Crisis Support', icon: AlertCircle, route: '/crisis-support' },
     { id: 'mood', label: 'Mood Analytics', icon: TrendingUp, route: '/mood-dashboard' },
     { id: 'learning', label: 'Resources', icon: BookOpen, route: '/resources' },
-  { id: 'groups', label: 'Peer Groups', icon: Users, badge: 'Explore', external: true, href: 'https://discord.gg/67meY4hr' },
+  { id: 'groups', label: 'Peer Groups', icon: Users, badge: 'Explore', external: true, href: 'https://discord.gg/THdJJrxnCS' },
   ];
 
   const handleItemClick = (item: any) => {
