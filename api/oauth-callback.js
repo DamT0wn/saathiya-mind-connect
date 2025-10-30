@@ -1,5 +1,7 @@
-// Vercel Serverless Function for Google OAuth Callback
+// Google OAuth Callback Handler for Vercel Serverless Functions
 module.exports = async function handler(req, res) {
+  console.log(`📍 API Callback called: ${req.method} ${req.url}`);
+  
   // Set CORS headers
   const allowedOrigins = [
     'http://localhost:3000',
@@ -23,18 +25,25 @@ module.exports = async function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    // Handle OAuth callback from Google
+    // Handle OAuth callback from Google authorization code flow
     const { code, state, error } = req.query;
+
+    console.log('🔄 GET callback received with query:', { code: code ? 'present' : 'missing', error });
 
     if (error) {
       console.error('❌ OAuth error:', error);
-      // Redirect to frontend with error
-      return res.redirect(`${process.env.NODE_ENV === 'production' ? 'https://saathiya-mind-connect.vercel.app' : 'http://localhost:8080'}?error=${encodeURIComponent(error)}`);
+      const frontendUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://saathiya-mind-connect.vercel.app' 
+        : 'http://localhost:8080';
+      return res.redirect(`${frontendUrl}?error=${encodeURIComponent(error)}`);
     }
 
     if (!code) {
       console.error('❌ No authorization code received');
-      return res.redirect(`${process.env.NODE_ENV === 'production' ? 'https://saathiya-mind-connect.vercel.app' : 'http://localhost:8080'}?error=no_code`);
+      const frontendUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://saathiya-mind-connect.vercel.app' 
+        : 'http://localhost:8080';
+      return res.redirect(`${frontendUrl}?error=no_code`);
     }
 
     try {
@@ -58,7 +67,10 @@ module.exports = async function handler(req, res) {
       if (!tokenResponse.ok) {
         const errorData = await tokenResponse.text();
         console.error('❌ Token exchange failed:', errorData);
-        return res.redirect(`${process.env.NODE_ENV === 'production' ? 'https://saathiya-mind-connect.vercel.app' : 'http://localhost:8080'}?error=token_exchange_failed`);
+        const frontendUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://saathiya-mind-connect.vercel.app' 
+          : 'http://localhost:8080';
+        return res.redirect(`${frontendUrl}?error=token_exchange_failed`);
       }
 
       const tokens = await tokenResponse.json();
@@ -69,13 +81,16 @@ module.exports = async function handler(req, res) {
       
       if (!userResponse.ok) {
         console.error('❌ Failed to get user info');
-        return res.redirect(`${process.env.NODE_ENV === 'production' ? 'https://saathiya-mind-connect.vercel.app' : 'http://localhost:8080'}?error=user_info_failed`);
+        const frontendUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://saathiya-mind-connect.vercel.app' 
+          : 'http://localhost:8080';
+        return res.redirect(`${frontendUrl}?error=user_info_failed`);
       }
 
       const userInfo = await userResponse.json();
       console.log('✅ User info retrieved:', userInfo.email);
 
-      // Generate JWT token for our app (you can implement this)
+      // Generate app token (base64 encoded for simplicity)
       const userToken = Buffer.from(JSON.stringify({
         id: userInfo.sub,
         email: userInfo.email,
@@ -92,22 +107,27 @@ module.exports = async function handler(req, res) {
       return res.redirect(`${frontendUrl}?token=${userToken}&success=true`);
 
     } catch (error) {
-      console.error('❌ Callback processing error:', error);
-      return res.redirect(`${process.env.NODE_ENV === 'production' ? 'https://saathiya-mind-connect.vercel.app' : 'http://localhost:8080'}?error=processing_failed`);
+      console.error('❌ GET callback processing error:', error);
+      const frontendUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://saathiya-mind-connect.vercel.app' 
+        : 'http://localhost:8080';
+      return res.redirect(`${frontendUrl}?error=processing_failed`);
     }
   }
 
   if (req.method === 'POST') {
-    // Accept POST from Google Identity Services (credential) or from client
+    // Handle POST from Google Identity Services (credential) or client
+    console.log('🔄 POST callback received');
+    
     try {
       let body = req.body;
 
-      // If body is a string (server may not have parsed it), try to parse
+      // Parse body if it's a string
       if (typeof body === 'string' && body.length) {
         try {
           body = JSON.parse(body);
         } catch (e) {
-          // Try parsing urlencoded
+          // Try parsing as urlencoded
           const params = new URLSearchParams(body);
           const parsed = {};
           for (const [k, v] of params) parsed[k] = v;
@@ -115,12 +135,19 @@ module.exports = async function handler(req, res) {
         }
       }
 
+      console.log('📝 Request body keys:', body ? Object.keys(body) : 'none');
+
       const credential = (body && (body.credential || body.id_token || body.idToken)) || null;
 
       if (!credential) {
         console.error('❌ No credential/id_token provided in POST body');
-        return res.status(400).json({ error: 'no_credential' });
+        return res.status(400).json({ 
+          error: 'no_credential',
+          message: 'No credential found in request body'
+        });
       }
+
+      console.log('🔄 Verifying credential with Google tokeninfo...');
 
       // Verify ID token with Google's tokeninfo endpoint
       const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(credential)}`);
@@ -128,12 +155,17 @@ module.exports = async function handler(req, res) {
       if (!verifyRes.ok) {
         const txt = await verifyRes.text();
         console.error('❌ tokeninfo failed:', verifyRes.status, txt);
-        return res.status(400).json({ error: 'invalid_token', details: txt });
+        return res.status(400).json({ 
+          error: 'invalid_token', 
+          details: txt,
+          status: verifyRes.status 
+        });
       }
 
       const userInfo = await verifyRes.json();
+      console.log('✅ Token verified for user:', userInfo.email);
 
-      // Minimal user payload to return
+      // Create user payload
       const user = {
         id: userInfo.sub,
         email: userInfo.email,
@@ -143,18 +175,35 @@ module.exports = async function handler(req, res) {
         audience: userInfo.aud || null,
       };
 
-      // Create a simple app token (base64 JSON) -- replace with signed JWT in prod
-      const appToken = Buffer.from(JSON.stringify({ id: user.id, email: user.email, iat: Date.now() })).toString('base64');
+      // Create app token (base64 JSON for simplicity - replace with JWT in production)
+      const appToken = Buffer.from(JSON.stringify({ 
+        id: user.id, 
+        email: user.email, 
+        iat: Date.now() 
+      })).toString('base64');
 
-      console.log('✅ POST /api/callback verified user:', user.email);
+      console.log('✅ POST /api/callback success for user:', user.email);
 
-      return res.status(200).json({ success: true, user, token: appToken });
+      return res.status(200).json({ 
+        success: true, 
+        user, 
+        token: appToken 
+      });
 
     } catch (error) {
       console.error('❌ POST callback error:', error);
-      return res.status(500).json({ error: 'server_error', details: String(error) });
+      return res.status(500).json({ 
+        error: 'server_error', 
+        details: String(error),
+        message: 'Internal server error during authentication'
+      });
     }
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
-}
+  console.log('❌ Method not allowed:', req.method);
+  return res.status(405).json({ 
+    error: 'Method not allowed',
+    allowed: ['GET', 'POST', 'OPTIONS'],
+    received: req.method
+  });
+};
