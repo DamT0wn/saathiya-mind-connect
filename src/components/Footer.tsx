@@ -160,7 +160,7 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
           <div className="text-sm text-muted-foreground">
-            © 2024 Saathi. All rights reserved. Made with ❤️ for Indian youth.
+            © 2025 Saathi. All rights reserved. Made with ❤️ for Indian youth.
           </div>
           
           <div className="flex items-center space-x-4">

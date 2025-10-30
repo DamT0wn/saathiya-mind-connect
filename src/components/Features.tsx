@@ -105,7 +105,7 @@ export function Features({ onFeatureClick }: FeaturesProps) {
             return (
               <Card 
                 key={index} 
-                className={`shadow-wellness border-0 transition-all duration-300 hover:-translate-y-1 animate-fade-up h-full ${
+                className={`shadow-wellness border-0 transition-all duration-300 hover:-translate-y-1 animate-fade-up h-full flex flex-col ${
                   isAvailable 
                     ? 'hover:shadow-medium cursor-pointer' 
                     : 'opacity-75 cursor-not-allowed'
@@ -121,9 +121,7 @@ export function Features({ onFeatureClick }: FeaturesProps) {
                         <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white">
                         </div>
                       )}
-                      {!isAvailable && (
-                        <Lock className="absolute -top-1 -right-1 w-4 h-4 text-gray-400" />
-                      )}
+
                     </div>
                     <Badge 
                       variant={isAvailable ? "default" : "secondary"} 
@@ -138,39 +136,36 @@ export function Features({ onFeatureClick }: FeaturesProps) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex-1 flex flex-col">
-                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4 flex-1">
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4 flex-grow">
                     {feature.description}
                   </p>
                   
-                  {isAvailable ? (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFeatureClick(feature);
-                      }}
-                    >
-                      {feature.route ? 'Open Feature' : 'Try Now'}
-                    </Button>
-                  ) : (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      <span>Explore</span>
-                    </div>
-                  )}
+                  <div className="mt-auto">
+                    {isAvailable && feature.title !== 'Peer Micro-Groups' ? (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFeatureClick(feature);
+                        }}
+                      >
+                        {feature.route ? 'Open Feature' : 'Try Now'}
+                      </Button>
+                    ) : null}
 
-                  {/* If this is the Peer Micro-Groups feature, surface the Discord invite */}
-                  {feature.title === 'Peer Micro-Groups' && (
-                    <div className="mt-3">
-                      <a href="https://discord.gg/67meY4hr" target="_blank" rel="noopener noreferrer">
-                        <Button variant="secondary" size="sm" className="w-full">
-                          Join Peer Groups on Discord
-                        </Button>
-                      </a>
-                    </div>
-                  )}
+                    {/* If this is the Peer Micro-Groups feature, surface the Discord invite */}
+                    {feature.title === 'Peer Micro-Groups' && (
+                      <div>
+                        <a href="https://discord.gg/67meY4hr" target="_blank" rel="noopener noreferrer">
+                          <Button variant="secondary" size="sm" className="w-full">
+                            Join Peer Groups on Discord
+                          </Button>
+                        </a>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );
@@ -183,10 +178,6 @@ export function Features({ onFeatureClick }: FeaturesProps) {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-green-400 rounded-full"></div>
               <span className="text-sm">Available Now</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Lock className="h-3 w-3 text-gray-400" />
-              <span className="text-sm">Explore</span>
             </div>
           </div>
         </div>
