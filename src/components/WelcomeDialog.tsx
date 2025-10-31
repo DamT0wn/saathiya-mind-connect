@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Shield, Heart, ExternalLink } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface WelcomeDialogProps {
   open: boolean;
@@ -18,6 +19,21 @@ interface WelcomeDialogProps {
 
 export function WelcomeDialog({ open, onAccept }: WelcomeDialogProps) {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const { currentUser } = useAuth();
+
+  // Get user's display name or extract from email
+  const getUserName = () => {
+    if (currentUser?.displayName) {
+      return currentUser.displayName.split(' ')[0]; // First name only
+    }
+    if (currentUser?.email) {
+      // Extract name from email (before @)
+      return currentUser.email.split('@')[0];
+    }
+    return 'Friend';
+  };
+
+  const userName = getUserName();
 
   // Reset checkbox when dialog opens
   useEffect(() => {
@@ -60,7 +76,7 @@ export function WelcomeDialog({ open, onAccept }: WelcomeDialogProps) {
             </div>
           </div>
           <DialogTitle className="text-xl sm:text-2xl text-center px-2">
-            Welcome to Saathi Mind Connect! 🎉
+            Hey, <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-wellness-calm">{userName}</span>! Welcome to Saathi 🎉
           </DialogTitle>
           <DialogDescription id="welcome-description" className="text-center text-sm sm:text-base space-y-3 sm:space-y-4 pt-3 sm:pt-4 px-2">
             <div className="flex items-start space-x-2 sm:space-x-3 text-left">

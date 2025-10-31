@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,18 +15,42 @@ import {
   Users,
   BookOpen,
   AlertTriangle,
-  CheckCircle
+  CheckCircle,
+  Edit,
+  FileText
 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
+import { SafetyPlanDialog } from '@/components/SafetyPlanDialog';
+import { SafetyPlanViewer } from '@/components/SafetyPlanViewer';
+import { useAuth } from '@/contexts/AuthContext';
+import { useState } from 'react';
 
 const CrisisSupport = () => {
   const navigate = useNavigate();
-  const [emergencyContacted, setEmergencyContacted] = useState(false);
+  const { currentUser } = useAuth();
+  const [safetyPlanDialogOpen, setSafetyPlanDialogOpen] = useState(false);
+  const [safetyPlanViewerOpen, setSafetyPlanViewerOpen] = useState(false);
+  const [existingSafetyPlan, setExistingSafetyPlan] = useState<any>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
+
+  // Load existing safety plan when user is available
+  useEffect(() => {
+    if (currentUser) {
+      const storageKey = `safetyPlan_${currentUser.uid}`;
+      const savedPlan = localStorage.getItem(storageKey);
+      if (savedPlan) {
+        try {
+          setExistingSafetyPlan(JSON.parse(savedPlan));
+        } catch (error) {
+          console.error('Error loading safety plan:', error);
+        }
+      }
+    }
+  }, [currentUser]);
 
   const handleSectionClick = (section: string) => {
     if (section === 'home') {
@@ -83,32 +107,31 @@ const CrisisSupport = () => {
       icon: Shield,
       title: "Safety Planning",
       description: "Create a personalized safety plan for crisis situations",
-      color: "bg-primary"
+      color: "bg-primary",
+      action: () => setSafetyPlanDialogOpen(true)
     },
     {
       icon: Heart,
       title: "Breathing Exercises",
       description: "Immediate grounding techniques to manage panic and anxiety",
-      color: "bg-wellness-calm"
+      color: "bg-wellness-calm",
+      action: () => navigate('/resources') // Navigate to Resource Center where exercises are
     },
     {
       icon: Users,
       title: "Support Network",
       description: "Connect with trusted friends, family, or support groups",
-      color: "bg-wellness-energy"
+      color: "bg-wellness-energy",
+      action: () => navigate('/ai-chat') // Navigate to AI Chat for support
     },
     {
       icon: BookOpen,
       title: "Crisis Resources",
       description: "Educational materials about crisis management and recovery",
-      color: "bg-success"
+      color: "bg-success",
+      action: () => navigate('/resources') // Navigate to Resource Center
     }
   ];
-
-  const handleEmergencyCall = (number: string) => {
-    window.open(`tel:${number}`, '_self');
-    setEmergencyContacted(true);
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -162,42 +185,45 @@ const CrisisSupport = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 {emergencyContacts.map((contact, index) => (
-                  <div key={index} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-semibold">{contact.name}</h3>
-                        <Badge variant="outline" className="text-xs mt-1">
+                  <div key={index} className="p-4 sm:p-5 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-base sm:text-lg">{contact.name}</h3>
+                        <Badge variant="outline" className="text-xs mt-1.5">
                           {contact.type}
                         </Badge>
                       </div>
-                      <div className="text-right">
-                        <Button
-                          onClick={() => handleEmergencyCall(contact.number)}
-                          className="bg-destructive hover:bg-destructive/90"
-                          size="sm"
-                        >
-                          <Phone className="h-4 w-4 mr-2" />
-                          Call Now
-                        </Button>
-                        <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                      <div className="flex flex-col gap-2 sm:text-right">
+                        {/* Call Now Button - Works on all devices */}
+                        <a href={`tel:${contact.telNumber}`}>
+                          <Button
+                            className="bg-destructive hover:bg-destructive/90 w-full sm:w-auto"
+                            size="sm"
+                          >
+                            <Phone className="h-4 w-4 mr-2" />
+                            Call Now
+                          </Button>
+                        </a>
+                        {/* Visit Website Button - Always visible */}
+                        <a href={contact.website} target="_blank" rel="noopener noreferrer">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full sm:w-auto"
+                          >
+                            Visit Website
+                          </Button>
+                        </a>
+                        <p className="text-xs text-muted-foreground flex items-center justify-start sm:justify-end gap-1 mt-1">
                           <Clock className="h-3 w-3" />
                           {contact.availability}
                         </p>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{contact.description}</p>
-                    <p className="text-sm font-mono mt-2 text-primary">{contact.number}</p>
+                    <p className="text-sm text-muted-foreground mb-2">{contact.description}</p>
+                    <p className="text-sm font-mono text-primary">{contact.number}</p>
                   </div>
                 ))}
-
-                {emergencyContacted && (
-                  <Alert className="border-success/50 bg-success/5">
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Great job reaching out for help. Remember, you're not alone in this.
-                    </AlertDescription>
-                  </Alert>
-                )}
               </CardContent>
             </Card>
 
@@ -216,7 +242,10 @@ const CrisisSupport = () => {
                     <p className="text-sm text-muted-foreground mb-3">
                       Get immediate support from our AI trained in crisis intervention.
                     </p>
-                    <Button className="w-full">
+                    <Button 
+                      className="w-full"
+                      onClick={() => navigate('/ai-chat')}
+                    >
                       <MessageCircle className="h-4 w-4 mr-2" />
                       Start Crisis Chat
                     </Button>
@@ -227,7 +256,11 @@ const CrisisSupport = () => {
                     <p className="text-sm text-muted-foreground mb-3">
                       5-minute emergency grounding technique to help manage panic.
                     </p>
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => navigate('/resources')}
+                    >
                       <Heart className="h-4 w-4 mr-2" />
                       Start Breathing Exercise
                     </Button>
@@ -251,15 +284,28 @@ const CrisisSupport = () => {
                   {crisisResources.map((resource, index) => {
                     const Icon = resource.icon;
                     return (
-                      <div key={index} className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                      <div 
+                        key={index} 
+                        className="p-4 border rounded-lg hover:bg-muted/50 hover:border-primary/50 transition-all cursor-pointer active:scale-[0.98]"
+                        onClick={resource.action}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            resource.action();
+                          }
+                        }}
+                      >
                         <div className="flex items-start gap-3">
                           <div className={`${resource.color} p-2 rounded-lg text-white flex-shrink-0`}>
                             <Icon className="h-4 w-4" />
                           </div>
-                          <div>
+                          <div className="flex-1">
                             <h3 className="font-semibold mb-1">{resource.title}</h3>
                             <p className="text-sm text-muted-foreground">{resource.description}</p>
                           </div>
+                          <ArrowLeft className="h-4 w-4 text-muted-foreground rotate-180 flex-shrink-0 mt-1" />
                         </div>
                       </div>
                     );
@@ -277,39 +323,110 @@ const CrisisSupport = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <h4 className="font-semibold mb-2">Warning Signs</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Identify your personal warning signs that indicate you might be entering a crisis.
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <h4 className="font-semibold mb-2">Coping Strategies</h4>
-                    <p className="text-sm text-muted-foreground">
-                      List activities and techniques that help you feel better and more grounded.
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <h4 className="font-semibold mb-2">Support Network</h4>
-                    <p className="text-sm text-muted-foreground">
-                      People you can reach out to when you need help or someone to talk to.
-                    </p>
-                  </div>
-                  
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <h4 className="font-semibold mb-2">Professional Contacts</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Mental health professionals and emergency contacts for immediate help.
-                    </p>
-                  </div>
+                {existingSafetyPlan ? (
+                  <div className="space-y-4">
+                    {/* Existing plan preview */}
+                    <Alert className="border-success/50 bg-success/5">
+                      <CheckCircle className="h-4 w-4 text-success" />
+                      <AlertDescription className="text-sm">
+                        <strong>Your safety plan is ready!</strong> Last updated{' '}
+                        {new Date(existingSafetyPlan.lastUpdated).toLocaleDateString()}
+                      </AlertDescription>
+                    </Alert>
 
-                  <Button className="w-full mt-4">
-                    Create My Safety Plan
-                  </Button>
-                </div>
+                    {existingSafetyPlan.warningSigns && (
+                      <div className="p-4 bg-muted/30 rounded-lg">
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-amber-500" />
+                          Warning Signs
+                        </h4>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {existingSafetyPlan.warningSigns}
+                        </p>
+                      </div>
+                    )}
+
+                    {existingSafetyPlan.supportContacts?.length > 0 && (
+                      <div className="p-4 bg-muted/30 rounded-lg">
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <Users className="h-4 w-4 text-primary" />
+                          Support Contacts
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {existingSafetyPlan.supportContacts.length} contact(s) saved
+                        </p>
+                      </div>
+                    )}
+
+                    {existingSafetyPlan.professionalContacts?.length > 0 && (
+                      <div className="p-4 bg-muted/30 rounded-lg">
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-destructive" />
+                          Professional Helplines
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {existingSafetyPlan.professionalContacts.length} helpline(s) selected
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2">
+                      <Button 
+                        className="flex-1"
+                        onClick={() => setSafetyPlanViewerOpen(true)}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        View Full Plan
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => setSafetyPlanDialogOpen(true)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit Plan
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-muted/30 rounded-lg">
+                      <h4 className="font-semibold mb-2">Warning Signs</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Identify your personal warning signs that indicate you might be entering a crisis.
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 bg-muted/30 rounded-lg">
+                      <h4 className="font-semibold mb-2">Coping Strategies</h4>
+                      <p className="text-sm text-muted-foreground">
+                        List activities and techniques that help you feel better and more grounded.
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 bg-muted/30 rounded-lg">
+                      <h4 className="font-semibold mb-2">Support Network</h4>
+                      <p className="text-sm text-muted-foreground">
+                        People you can reach out to when you need help or someone to talk to.
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 bg-muted/30 rounded-lg">
+                      <h4 className="font-semibold mb-2">Professional Contacts</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Mental health professionals and emergency contacts for immediate help.
+                      </p>
+                    </div>
+
+                    <Button 
+                      className="w-full mt-4"
+                      onClick={() => setSafetyPlanDialogOpen(true)}
+                    >
+                      <Shield className="h-4 w-4 mr-2" />
+                      Create My Safety Plan
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -346,9 +463,52 @@ const CrisisSupport = () => {
                 </ul>
               </div>
             </div>
+
+            {/* Support Note */}
+            <Alert className="mt-6 border-primary/50 bg-primary/5">
+              <Heart className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm">
+                <strong>If you or someone you know is in emotional distress, please reach out to these verified helplines for support.</strong>
+                {' '}All services listed above are staffed by trained professionals who are ready to help you through difficult times.
+              </AlertDescription>
+            </Alert>
           </CardContent>
         </Card>
       </div>
+
+      {/* Safety Plan Dialog */}
+      <SafetyPlanDialog
+        open={safetyPlanDialogOpen}
+        onClose={() => {
+          setSafetyPlanDialogOpen(false);
+          // Reload the safety plan after closing
+          if (currentUser) {
+            const storageKey = `safetyPlan_${currentUser.uid}`;
+            const savedPlan = localStorage.getItem(storageKey);
+            if (savedPlan) {
+              try {
+                setExistingSafetyPlan(JSON.parse(savedPlan));
+              } catch (error) {
+                console.error('Error loading safety plan:', error);
+              }
+            }
+          }
+        }}
+        existingPlan={existingSafetyPlan}
+      />
+
+      {/* Safety Plan Viewer */}
+      {existingSafetyPlan && (
+        <SafetyPlanViewer
+          open={safetyPlanViewerOpen}
+          onClose={() => setSafetyPlanViewerOpen(false)}
+          plan={existingSafetyPlan}
+          onEdit={() => {
+            setSafetyPlanViewerOpen(false);
+            setSafetyPlanDialogOpen(true);
+          }}
+        />
+      )}
     </div>
   );
 };
