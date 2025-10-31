@@ -93,11 +93,7 @@ export function MoodAnalytics({ onClose, modal = true }: MoodAnalyticsProps) {
 
   // Calculate mood trend (only show after 4 entries)
   const moodTrend = useMemo(() => {
-    console.log('Calculating mood trend. Mood history length:', moodHistory.length);
-    if (moodHistory.length < 4) {
-      console.log('Not enough entries for trend analysis');
-      return null;
-    }
+    if (moodHistory.length < 4) return null;
     
     // Get the last 4 entries
     const recentMoods = moodHistory.slice(-4);
@@ -109,15 +105,12 @@ export function MoodAnalytics({ onClose, modal = true }: MoodAnalyticsProps) {
     
     const difference = avgLast - avgFirst;
     
-    const trend = {
+    return {
       direction: difference > 0.5 ? 'improving' : difference < -0.5 ? 'declining' : 'stable',
       difference: Math.abs(difference).toFixed(1),
       avgFirst: avgFirst.toFixed(1),
       avgLast: avgLast.toFixed(1)
     };
-    
-    console.log('Trend calculated:', trend);
-    return trend;
   }, [moodHistory]);
 
   function getFactorIcon(factor: string) {
