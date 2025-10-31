@@ -2,8 +2,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BookOpen, Phone, Users, Video, Download, ExternalLink } from 'lucide-react';
-import { useMemo } from 'react';
+import { BookOpen, Phone, Users, Video, Download, ExternalLink, Bookmark, BookmarkCheck } from 'lucide-react';
+import { useMemo, useState, useEffect } from 'react';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Resource {
   id: string;
@@ -11,6 +13,7 @@ interface Resource {
   description: string;
   category: 'article' | 'video' | 'audio' | 'app' | 'contact' | 'course';
   url?: string;
+  pdfUrl?: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   duration?: string;
   tags: string[];
@@ -22,6 +25,7 @@ const mentalHealthResources: Resource[] = [
     title: 'Complete Guide to Breathing Techniques',
     description: 'Learn various breathing exercises for anxiety, stress, and relaxation',
     category: 'article',
+    pdfUrl: '/assets/resources/breathing-techniques.pdf',
     difficulty: 'beginner',
     duration: '10 min read',
     tags: ['anxiety', 'stress', 'breathing', 'relaxation']
@@ -31,6 +35,7 @@ const mentalHealthResources: Resource[] = [
     title: 'Cognitive Behavioral Therapy Self-Help Workbook',
     description: 'Practical exercises to challenge negative thought patterns',
     category: 'course',
+    pdfUrl: '/assets/resources/cbt-workbook.pdf',
     difficulty: 'intermediate',
     duration: '2-3 weeks',
     tags: ['depression', 'anxiety', 'cbt', 'self-help']
@@ -40,6 +45,7 @@ const mentalHealthResources: Resource[] = [
     title: 'Sleep Hygiene for Better Mental Health',
     description: 'Evidence-based strategies for improving sleep quality',
     category: 'article',
+    pdfUrl: '/assets/resources/sleep-hygiene-guide.pdf',
     difficulty: 'beginner',
     duration: '8 min read',
     tags: ['sleep', 'anxiety', 'depression', 'health']
@@ -54,18 +60,11 @@ const mentalHealthResources: Resource[] = [
     tags: ['meditation', 'mindfulness', 'stress', 'sleep']
   },
   {
-    id: 'crisis-helplines',
-    title: 'Mental Health Crisis Helplines in India',
-    description: 'Important phone numbers for immediate mental health support',
-    category: 'contact',
-    difficulty: 'beginner',
-    tags: ['crisis', 'emergency', 'support', 'helpline']
-  },
-  {
     id: 'study-stress',
     title: 'Managing Academic Stress and Anxiety',
     description: 'Specific strategies for students dealing with exam and study pressure',
     category: 'video',
+    pdfUrl: '/assets/resources/academic-stress-management.pdf',
     difficulty: 'beginner',
     duration: '15 minutes',
     tags: ['student', 'stress', 'anxiety', 'study']
@@ -75,18 +74,10 @@ const mentalHealthResources: Resource[] = [
     title: 'Overcoming Social Anxiety: A Step-by-Step Guide',
     description: 'Practical techniques for managing social situations and building confidence',
     category: 'course',
+    pdfUrl: '/assets/resources/social-anxiety-guide.pdf',
     difficulty: 'intermediate',
     duration: '4 weeks',
     tags: ['social-anxiety', 'confidence', 'social-skills']
-  },
-  {
-    id: 'mindfulness-audio',
-    title: 'Body Scan Meditation (Hindi & English)',
-    description: 'Guided audio meditation for relaxation and body awareness',
-    category: 'audio',
-    difficulty: 'beginner',
-    duration: '20 minutes',
-    tags: ['meditation', 'mindfulness', 'relaxation', 'body-scan']
   }
 ];
 
@@ -125,6 +116,79 @@ interface ResourceLibraryProps {
 }
 
 export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = true }: ResourceLibraryProps) {
+  const { currentUser } = useAuth();
+  const [savedResource, setSavedResource] = useState<Resource | null>(null);
+
+  // Load saved resource from localStorage on mount
+  useEffect(() => {
+    if (currentUser) {
+      const storageKey = `savedResource_${currentUser.uid}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          setSavedResource(JSON.parse(saved));
+        } catch (error) {
+          console.error('Error loading saved resource:', error);
+        }
+      }
+    }
+  }, [currentUser]);
+
+  // Handle saving a resource for later
+  const handleSaveForLater = (resource: Resource) => {
+    if (!currentUser) {
+      toast.error('Please sign in to save resources');
+      return;
+    }
+
+    const storageKey = `savedResource_${currentUser.uid}`;
+    
+    // Clear previous saved resource and save new one
+    localStorage.setItem(storageKey, JSON.stringify(resource));
+    setSavedResource(resource);
+    
+    toast.success('Saved to For You!', {
+      description: `${resource.title} has been added to your personalized section.`
+    });
+  };
+
+  // Handle accessing PDF or external URL
+  const handleAccessResource = (resource: Resource) => {
+    if (resource.pdfUrl) {
+      // Try to open PDF
+      const link = document.createElement('a');
+      link.href = resource.pdfUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      
+      // Check if file exists (basic check)
+      fetch(resource.pdfUrl, { method: 'HEAD' })
+        .then(response => {
+          if (response.ok) {
+            link.click();
+          } else {
+            toast.error('File not available', {
+              description: 'This resource is currently unavailable. Please try again later.'
+            });
+          }
+        })
+        .catch(() => {
+          // If fetch fails, still try to open (might be CORS issue)
+          link.click();
+        });
+    } else if (resource.url) {
+      window.open(resource.url, '_blank', 'noopener noreferrer');
+    } else {
+      toast.error('File not available', {
+        description: 'This resource does not have an associated file.'
+      });
+    }
+  };
+
+  // Check if a resource is currently saved
+  const isResourceSaved = (resourceId: string) => {
+    return savedResource?.id === resourceId;
+  };
   // Normalize matching across moods/topics with simple aliases
   const moodAliases: Record<string, string[]> = {
     anxious: ['anxiety', 'panic', 'worry'],
@@ -244,21 +308,41 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = tr
                         </div>
 
                         <div className="flex gap-2 mt-3">
-                          {resource.url ? (
-                            <Button size="sm" variant="outline" asChild>
-                              <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="h-3 w-3 mr-1" />
-                                Open
-                              </a>
+                          {resource.url || resource.pdfUrl ? (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleAccessResource(resource)}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Access
                             </Button>
                           ) : (
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => toast.error('File not available')}
+                            >
                               <Download className="h-3 w-3 mr-1" />
                               Access
                             </Button>
                           )}
-                          <Button size="sm" variant="ghost">
-                            Save for Later
+                          <Button 
+                            size="sm" 
+                            variant={isResourceSaved(resource.id) ? "default" : "ghost"}
+                            onClick={() => handleSaveForLater(resource)}
+                          >
+                            {isResourceSaved(resource.id) ? (
+                              <>
+                                <BookmarkCheck className="h-3 w-3 mr-1" />
+                                Saved
+                              </>
+                            ) : (
+                              <>
+                                <Bookmark className="h-3 w-3 mr-1" />
+                                Save for Later
+                              </>
+                            )}
                           </Button>
                         </div>
                       </div>
@@ -305,11 +389,90 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = tr
             </TabsContent>
 
             <TabsContent value="recommended" className="space-y-4">
+              {/* Saved Resource Section */}
+              {savedResource && (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <BookmarkCheck className="h-5 w-5 text-primary" />
+                      Saved Resource
+                    </h3>
+                    <Badge variant="outline">Recently Saved</Badge>
+                  </div>
+                  <Card className="p-4 border-primary bg-primary/5">
+                    <div className="flex items-start gap-4">
+                      <div className="p-2 bg-primary/20 rounded-lg">
+                        {getIcon(savedResource.category)}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h3 className="font-medium">{savedResource.title}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {savedResource.description}
+                            </p>
+                          </div>
+                          <Badge className={getDifficultyColor(savedResource.difficulty)}>
+                            {savedResource.difficulty}
+                          </Badge>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 mt-3">
+                          {savedResource.duration && (
+                            <Badge variant="outline" className="text-xs">
+                              {savedResource.duration}
+                            </Badge>
+                          )}
+                          <div className="flex gap-1">
+                            {savedResource.tags.slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 mt-3">
+                          <Button 
+                            size="sm" 
+                            variant="default"
+                            onClick={() => handleAccessResource(savedResource)}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Access Now
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              if (currentUser) {
+                                const storageKey = `savedResource_${currentUser.uid}`;
+                                localStorage.removeItem(storageKey);
+                                setSavedResource(null);
+                                toast.success('Resource removed from saved items');
+                              }
+                            }}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              )}
+
+              {/* Recommended Resources */}
               {relevantResources.length > 0 ? (
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Based on your current mood and conversation, here are some relevant resources:
-                  </p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold">Recommended For You</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Based on your current mood and conversation
+                      </p>
+                    </div>
+                  </div>
                   <div className="grid gap-4">
                     {relevantResources.slice(0, 6).map((resource) => (
                       <Card key={resource.id} className="p-4 border-primary/20">
@@ -334,6 +497,33 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = tr
                                     {tag}
                                   </Badge>
                                 ))}
+                            </div>
+                            <div className="flex gap-2 mt-3">
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleAccessResource(resource)}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Access
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant={isResourceSaved(resource.id) ? "default" : "ghost"}
+                                onClick={() => handleSaveForLater(resource)}
+                              >
+                                {isResourceSaved(resource.id) ? (
+                                  <>
+                                    <BookmarkCheck className="h-3 w-3 mr-1" />
+                                    Saved
+                                  </>
+                                ) : (
+                                  <>
+                                    <Bookmark className="h-3 w-3 mr-1" />
+                                    Save
+                                  </>
+                                )}
+                              </Button>
                             </div>
                           </div>
                         </div>
