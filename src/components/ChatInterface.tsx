@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User, Heart, AlertCircle, Brain, Smile, Activity, BookOpen, Mic, MicOff, Settings } from "lucide-react";
+import { Send, Bot, User, Heart, AlertCircle, Brain, Smile, Activity, BookOpen, Mic, MicOff, Settings, Trash2, ArrowUp, Volume2 } from "lucide-react";
 import chatbotAvatar from "@/assets/chatbot-avatar.png";
 import { useChatContext } from "@/contexts/ChatContext";
 import { ExercisePlayer } from "./ExercisePlayer";
@@ -23,7 +23,7 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
-  const { state, addMessage, updateMood, setTyping } = useChatContext();
+  const { state, addMessage, updateMood, setTyping, clearMessages } = useChatContext();
   const [inputValue, setInputValue] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [showExercisePlayer, setShowExercisePlayer] = useState(false);
@@ -32,9 +32,32 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
   const [showMoodAnalytics, setShowMoodAnalytics] = useState(false);
   const [showAccessibilityPanel, setShowAccessibilityPanel] = useState(false);
   const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [voicesLoaded, setVoicesLoaded] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load speech synthesis voices
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      // Load voices
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+          setVoicesLoaded(true);
+        }
+      };
+
+      // Voices might load asynchronously
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+
+      return () => {
+        window.speechSynthesis.onvoiceschanged = null;
+      };
+    }
+  }, []);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -45,6 +68,120 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
       }
     }
   }, [state.messages]);
+
+  // Detect scroll position to show/hide scroll-to-top button
+  useEffect(() => {
+    const scrollContainer = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      // Show button if scrolled up more than 200px from bottom
+      const isScrolledUp = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight > 200;
+      setShowScrollTop(isScrolledUp);
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Function to scroll chat to top
+  const scrollToTop = () => {
+    const scrollContainer = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (scrollContainer) {
+      scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Function to handle text-to-speech for a specific message
+  const handleTextToSpeech = (text: string) => {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      // Remove emojis and special characters for cleaner speech
+      const cleanText = text
+        .replace(/[\u{1F600}-\u{1F64F}]/gu, '') // Emoticons
+        .replace(/[\u{1F300}-\u{1F5FF}]/gu, '') // Misc Symbols and Pictographs
+        .replace(/[\u{1F680}-\u{1F6FF}]/gu, '') // Transport and Map
+        .replace(/[\u{1F1E0}-\u{1F1FF}]/gu, '') // Flags
+        .replace(/[\u{2600}-\u{26FF}]/gu, '')   // Misc symbols
+        .replace(/[\u{2700}-\u{27BF}]/gu, '')   // Dingbats
+        .replace(/[\u{1F900}-\u{1F9FF}]/gu, '') // Supplemental Symbols and Pictographs
+        .replace(/[\u{1FA00}-\u{1FA6F}]/gu, '') // Chess Symbols
+        .replace(/[\u{1FA70}-\u{1FAFF}]/gu, '') // Symbols and Pictographs Extended-A
+        .replace(/[\u{FE00}-\u{FE0F}]/gu, '')   // Variation Selectors
+        .replace(/[\u{1F200}-\u{1F251}]/gu, '') // Enclosed Ideographic Supplement
+        .replace(/🙏|😰|📚|😔|😊|❤️|🇮🇳/g, '') // Common emojis
+        .trim();
+      
+      // Don't speak if text is empty after removing emojis
+      if (!cleanText) {
+        console.log('No text to speak after removing emojis');
+        return;
+      }
+      
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      
+      // Get available voices
+      const voices = window.speechSynthesis.getVoices();
+      
+      // Try to find an Indian English voice first (best for Hindi-English mix)
+      const preferredVoice = voices.find(voice => 
+        // First priority: Indian English voices
+        voice.lang === 'en-IN' || 
+        voice.name.includes('Indian') ||
+        voice.name.includes('Ravi') || // Microsoft Indian voice
+        voice.name.includes('Heera') // Google Indian voice
+      ) || voices.find(voice => 
+        // Second priority: Hindi voices for better Hindi pronunciation
+        voice.lang === 'hi-IN' || voice.name.includes('Hindi')
+      ) || voices.find(voice => 
+        // Third priority: Good quality female voices
+        (voice.name.includes('Google') || voice.name.includes('Microsoft')) &&
+        (voice.name.includes('Female') || voice.name.includes('Zira') || voice.name.includes('Aria'))
+      ) || voices.find(voice =>
+        // Fallback: Any en-US voice
+        voice.lang === 'en-US'
+      );
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+        console.log('Using voice:', preferredVoice.name, preferredVoice.lang);
+      }
+      
+      // Enhanced speech parameters for Indian accent and Hinglish
+      utterance.lang = preferredVoice?.lang || 'en-IN'; // Prefer Indian English
+      utterance.rate = 0.9; // Moderate speed for clarity in both languages
+      utterance.pitch = 1.0; // Natural pitch for Indian accent
+      utterance.volume = 1.0; // Full volume
+      
+      // Add error handling
+      utterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+      };
+      
+      // Optional: Log when speech starts
+      utterance.onstart = () => {
+        console.log('Speaking:', cleanText.substring(0, 50) + '...');
+      };
+      
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.error('Text-to-speech not supported in this browser');
+    }
+  };
+
+  // Function to clear all chat messages
+  const handleClearChat = () => {
+    if (confirm('Are you sure you want to clear all chat messages? This cannot be undone.')) {
+      clearMessages();
+      addMessage({
+        content: "Hi! I'm Saathi, your mental wellness companion. How can I support you today?",
+        sender: "bot",
+        type: "text"
+      });
+    }
+  };
 
   // Auto-scroll to chat container and focus on input when component mounts or when in full-screen
   useEffect(() => {
@@ -333,16 +470,30 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
                   </div>
                 </div>
                 
-                {/* Accessibility Button */}
-                <Button
-                  onClick={() => setShowAccessibilityPanel(true)}
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/20"
-                  aria-label="Open accessibility settings"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  {/* Clear Chat Button */}
+                  <Button
+                    onClick={handleClearChat}
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/20"
+                    aria-label="Clear chat history"
+                    title="Clear Chat"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+
+                  {/* Accessibility Button */}
+                  <Button
+                    onClick={() => setShowAccessibilityPanel(true)}
+                    variant="ghost"
+                    size="icon"
+                    className="text-white hover:bg-white/20"
+                    aria-label="Open accessibility settings"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -358,9 +509,21 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
 
             {/* Chat Messages */}
             <ScrollArea 
-              className={`p-4 ${isFullScreen ? 'flex-1 min-h-0' : 'h-96'}`} 
+              className={`p-4 ${isFullScreen ? 'flex-1 min-h-0' : 'h-96'} relative`} 
               ref={scrollAreaRef}
             >
+              {/* Scroll to Top Button */}
+              {showScrollTop && (
+                <Button
+                  onClick={scrollToTop}
+                  size="icon"
+                  className="absolute top-4 right-4 z-10 rounded-full shadow-lg"
+                  aria-label="Scroll to top"
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+              )}
+
               <div className="space-y-4">
                 {state.messages.map((message) => (
                   <div
@@ -386,7 +549,23 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
                             : "bg-muted text-muted-foreground"
                         }`}
                       >
-                        <p className="text-sm">{message.content}</p>
+                        <div className="flex items-start gap-2">
+                          <p className="text-sm flex-1">{message.content}</p>
+                          
+                          {/* Text-to-Speech Button for Bot Messages */}
+                          {message.sender === "bot" && (
+                            <Button
+                              onClick={() => handleTextToSpeech(message.content)}
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 p-0 hover:bg-primary/10 flex-shrink-0"
+                              aria-label="Read message aloud"
+                              title="Read aloud"
+                            >
+                              <Volume2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                         
                         {/* Show sentiment info for user messages */}
                         {message.sender === "user" && message.sentiment && (

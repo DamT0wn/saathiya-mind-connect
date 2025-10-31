@@ -18,7 +18,7 @@ const features = [
     icon: MessageCircle,
     title: "AI Chatbot",
     description: "AI-powered companion accessible from anywhere on the site with instant support and guidance. Advanced sentiment analysis with empathetic responses in Hindi and English.",
-    badge: "Available Now",
+    badge: "Connect Now",
     color: "bg-primary",
     status: "available",
     route: "/ai-chat"
@@ -27,7 +27,7 @@ const features = [
     icon: AlertCircle,
     title: "Crisis Support",
     description: "24/7 emergency detection with immediate access to professional helplines (KIRAN: 1800-599-0019) and crisis intervention.",
-    badge: "Available Now",
+    badge: "Connect Now",
     color: "bg-destructive",
     status: "available",
     route: "/crisis-support"
@@ -36,7 +36,7 @@ const features = [
     icon: BookOpen,
     title: "Micro-Learning & Skills",
     description: "Bite-sized mental health education, coping strategies, and skill-building exercises tailored for Indian youth.",
-    badge: "Available Now",
+    badge: "Connect Now",
     color: "bg-wellness-calm",
     status: "available",
     route: "/resources"
@@ -50,7 +50,7 @@ const features = [
     status: "available",
     route: null,
     external: true,
-    href: "https://discord.gg/67meY4hr"
+    href: "https://discord.gg/THdJJrxnCS"
   }
 ];
 
@@ -93,7 +93,7 @@ export function Features({ onFeatureClick }: FeaturesProps) {
           </h2>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto px-4">
             Discover our comprehensive suite of mental health tools designed specifically for your needs. 
-            Some features are available now, others are Explore.
+            All features are now available!
           </p>
         </div>
 
@@ -177,7 +177,7 @@ export function Features({ onFeatureClick }: FeaturesProps) {
           <div className="bg-muted/30 rounded-lg p-4 inline-flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-              <span className="text-sm">Available Now</span>
+              <span className="text-sm">Connect Now</span>
             </div>
           </div>
         </div>

@@ -15,6 +15,8 @@ import ResourceCenter from "./pages/ResourceCenter";
 import { Login } from "./pages/Login";
 import { FinishSignUp } from "./pages/FinishSignUp";
 import Settings from "./pages/Settings";
+import { Pricing } from "./pages/Pricing";
+import { Profile } from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const App = () => (
                 <Route path="/mood-dashboard" element={<MoodDashboard />} />
                 <Route path="/resources" element={<ResourceCenter />} />
                 <Route path="/settings" element={<Settings />} />
+                <Route path="/pricing" element={<Pricing />} />
+                <Route path="/profile" element={<Profile />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

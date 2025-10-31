@@ -74,8 +74,14 @@ export function PrivacySection() {
             <h3 className="text-2xl font-bold mb-6">Privacy Features</h3>
             {privacyFeatures.map((feature, index) => {
               const IconComponent = feature.icon;
+              const isEncryption = feature.title === "End-to-End Encryption";
               return (
-                <Card key={index} className="shadow-wellness border-0">
+                <Card 
+                  key={index} 
+                  className={`shadow-wellness border-0 transition-all duration-300 ${
+                    isEncryption ? 'hover:bg-green-50 dark:hover:bg-green-950/20' : ''
+                  }`}
+                >
                   <CardContent className="p-6">
                     <div className="flex items-start space-x-4">
                       <div className="bg-primary/10 p-3 rounded-lg">
@@ -123,7 +129,11 @@ export function PrivacySection() {
                 </div>
 
                 <div className="pt-4 border-t">
-                  <Button variant="outline" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => window.open('/privacy-policy.html', '_blank')}
+                  >
                     <FileText className="mr-2 h-4 w-4" />
                     Read Full Privacy Policy
                   </Button>

@@ -10,6 +10,7 @@ interface ChatContextType {
   startExercise: (exerciseId: string) => void;
   endExercise: () => void;
   setTyping: (isTyping: boolean) => void;
+  clearMessages: () => void;
 }
 
 type ChatAction =
@@ -22,7 +23,8 @@ type ChatAction =
   | { type: 'TOGGLE_MOOD_TRACKER' }
   | { type: 'TOGGLE_RESOURCES' }
   | { type: 'SET_VOICE_MODE'; payload: boolean }
-  | { type: 'LOAD_STATE'; payload: ChatState };
+  | { type: 'LOAD_STATE'; payload: ChatState }
+  | { type: 'CLEAR_MESSAGES' };
 
 const initialState: ChatState = {
   messages: [
@@ -139,6 +141,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'LOAD_STATE':
       return action.payload;
 
+    case 'CLEAR_MESSAGES':
+      return {
+        ...state,
+        messages: []
+      };
+
     default:
       return state;
   }
@@ -218,6 +226,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     dispatch({ type: 'SET_TYPING', payload: isTyping });
   };
 
+  const clearMessages = () => {
+    dispatch({ type: 'CLEAR_MESSAGES' });
+  };
+
   return (
     <ChatContext.Provider value={{
       state,
@@ -227,7 +239,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       updateUserProfile,
       startExercise,
       endExercise,
-      setTyping
+      setTyping,
+      clearMessages
     }}>
       {children}
     </ChatContext.Provider>

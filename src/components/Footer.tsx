@@ -7,11 +7,11 @@ const footerLinks = {
     { label: "Features", href: "#features" },
     { label: "Privacy", href: "#privacy" },
     { label: "Safety", href: "#safety" },
-    { label: "Pricing", href: "#pricing" },
+    { label: "Pricing", href: "/pricing" },
   ],
   support: [
     { label: "Help Center", href: "#help" },
-    { label: "Crisis Support", href: "#crisis" },
+    { label: "Crisis Support", href: "/crisis-support" },
     { label: "Contact Us", href: "#contact" },
     { label: "Community", href: "#community" },
   ],
@@ -22,7 +22,7 @@ const footerLinks = {
     { label: "Compliance", href: "#compliance" },
   ],
   resources: [
-    { label: "Mental Health Resources", href: "#resources" },
+    { label: "Mental Health Resources", href: "/resources" },
     { label: "For Schools", href: "#schools" },
     { label: "For Employers", href: "#employers" },
     { label: "Blog", href: "#blog" },

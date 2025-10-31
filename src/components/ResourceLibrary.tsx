@@ -117,18 +117,18 @@ interface ResourceLibraryProps {
 
 export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = true }: ResourceLibraryProps) {
   const { currentUser } = useAuth();
-  const [savedResource, setSavedResource] = useState<Resource | null>(null);
+  const [savedResources, setSavedResources] = useState<Resource[]>([]);
 
-  // Load saved resource from localStorage on mount
+  // Load saved resources from localStorage on mount
   useEffect(() => {
     if (currentUser) {
-      const storageKey = `savedResource_${currentUser.uid}`;
+      const storageKey = `savedResources_${currentUser.uid}`;
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         try {
-          setSavedResource(JSON.parse(saved));
+          setSavedResources(JSON.parse(saved));
         } catch (error) {
-          console.error('Error loading saved resource:', error);
+          console.error('Error loading saved resources:', error);
         }
       }
     }
@@ -141,15 +141,28 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = tr
       return;
     }
 
-    const storageKey = `savedResource_${currentUser.uid}`;
+    const storageKey = `savedResources_${currentUser.uid}`;
     
-    // Clear previous saved resource and save new one
-    localStorage.setItem(storageKey, JSON.stringify(resource));
-    setSavedResource(resource);
+    // Check if already saved
+    const isAlreadySaved = savedResources.some(r => r.id === resource.id);
     
-    toast.success('Saved to For You!', {
-      description: `${resource.title} has been added to your personalized section.`
-    });
+    if (isAlreadySaved) {
+      // Remove from saved
+      const updatedResources = savedResources.filter(r => r.id !== resource.id);
+      localStorage.setItem(storageKey, JSON.stringify(updatedResources));
+      setSavedResources(updatedResources);
+      toast.success('Removed from For You!');
+    } else {
+      // Add to saved
+      const updatedResources = [...savedResources, resource];
+      localStorage.setItem(storageKey, JSON.stringify(updatedResources));
+      setSavedResources(updatedResources);
+      
+      toast.success('Saved to For You!', {
+        description: `${resource.title} has been added to your personalized section.`,
+        duration: 2000
+      });
+    }
   };
 
   // Handle accessing PDF or external URL
@@ -187,7 +200,7 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = tr
 
   // Check if a resource is currently saved
   const isResourceSaved = (resourceId: string) => {
-    return savedResource?.id === resourceId;
+    return savedResources.some(r => r.id === resourceId);
   };
   // Normalize matching across moods/topics with simple aliases
   const moodAliases: Record<string, string[]> = {
@@ -215,14 +228,23 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = tr
   const getRelevantResources = useMemo(() => {
     const mood = norm(userMood);
     const topics = (userTopics || []).map(norm).filter(Boolean);
-    if (!mood && topics.length === 0) return mentalHealthResources;
-
-    return mentalHealthResources.filter(resource => {
-      const moodMatch = mood ? resource.tags.some(tag => tagMatches(tag, mood)) : false;
-      const topicMatch = topics.length > 0
-        ? topics.some(topic => resource.tags.some(tag => tagMatches(tag, topic)))
-        : false;
-      return moodMatch || topicMatch;
+    
+    let filteredResources = mentalHealthResources;
+    
+    if (mood || topics.length > 0) {
+      filteredResources = mentalHealthResources.filter(resource => {
+        const moodMatch = mood ? resource.tags.some(tag => tagMatches(tag, mood)) : false;
+        const topicMatch = topics.length > 0
+          ? topics.some(topic => resource.tags.some(tag => tagMatches(tag, topic)))
+          : false;
+        return moodMatch || topicMatch;
+      });
+    }
+    
+    // Sort by difficulty: beginner first, then intermediate, then advanced
+    return filteredResources.sort((a, b) => {
+      const difficultyOrder = { beginner: 1, intermediate: 2, advanced: 3 };
+      return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
     });
   }, [userMood, userTopics]);
 
@@ -273,7 +295,12 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = tr
 
             <TabsContent value="resources" className="space-y-4 max-h-[60vh] overflow-y-auto">
               <div className="grid gap-4">
-                {mentalHealthResources.map((resource) => (
+                {[...mentalHealthResources]
+                  .sort((a, b) => {
+                    const difficultyOrder = { beginner: 1, intermediate: 2, advanced: 3 };
+                    return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+                  })
+                  .map((resource) => (
                   <Card key={resource.id} className="p-4">
                     <div className="flex items-start gap-4">
                       <div className="p-2 bg-primary/10 rounded-lg">
@@ -366,18 +393,18 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = tr
               <div className="grid gap-3">
                 {crisisContacts.map((contact, index) => (
                   <Card key={index} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1">
                         <h3 className="font-medium">{contact.name}</h3>
                         <p className="text-sm text-muted-foreground">{contact.description}</p>
                         <p className="text-xs text-muted-foreground mt-1">
                           Available: {contact.availability}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <Button asChild>
-                          <a href={`tel:${contact.number}`}>
-                            <Phone className="h-4 w-4 mr-2" />
+                      <div className="flex-shrink-0">
+                        <Button asChild className="w-full min-w-[180px]">
+                          <a href={`tel:${contact.number}`} className="flex items-center justify-center gap-2">
+                            <Phone className="h-4 w-4" />
                             {contact.number}
                           </a>
                         </Button>
@@ -389,76 +416,73 @@ export function ResourceLibrary({ onClose, userMood, userTopics = [], modal = tr
             </TabsContent>
 
             <TabsContent value="recommended" className="space-y-4">
-              {/* Saved Resource Section */}
-              {savedResource && (
+              {/* Saved Resources Section */}
+              {savedResources.length > 0 && (
                 <div className="mb-6">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
                       <BookmarkCheck className="h-5 w-5 text-primary" />
-                      Saved Resource
+                      Saved Resources ({savedResources.length})
                     </h3>
-                    <Badge variant="outline">Recently Saved</Badge>
+                    <Badge variant="outline">Your Collection</Badge>
                   </div>
-                  <Card className="p-4 border-primary bg-primary/5">
-                    <div className="flex items-start gap-4">
-                      <div className="p-2 bg-primary/20 rounded-lg">
-                        {getIcon(savedResource.category)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-medium">{savedResource.title}</h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {savedResource.description}
-                            </p>
+                  <div className="grid gap-4">
+                    {savedResources.map((resource) => (
+                      <Card key={resource.id} className="p-4 border-primary bg-primary/5">
+                        <div className="flex items-start gap-4">
+                          <div className="p-2 bg-primary/20 rounded-lg">
+                            {getIcon(resource.category)}
                           </div>
-                          <Badge className={getDifficultyColor(savedResource.difficulty)}>
-                            {savedResource.difficulty}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 mt-3">
-                          {savedResource.duration && (
-                            <Badge variant="outline" className="text-xs">
-                              {savedResource.duration}
-                            </Badge>
-                          )}
-                          <div className="flex gap-1">
-                            {savedResource.tags.slice(0, 3).map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs">
-                                {tag}
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <h3 className="font-medium">{resource.title}</h3>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  {resource.description}
+                                </p>
+                              </div>
+                              <Badge className={getDifficultyColor(resource.difficulty)}>
+                                {resource.difficulty}
                               </Badge>
-                            ))}
+                            </div>
+                            
+                            <div className="flex items-center gap-2 mt-3">
+                              {resource.duration && (
+                                <Badge variant="outline" className="text-xs">
+                                  {resource.duration}
+                                </Badge>
+                              )}
+                              <div className="flex gap-1">
+                                {resource.tags.slice(0, 3).map((tag) => (
+                                  <Badge key={tag} variant="secondary" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="flex gap-2 mt-3">
+                              <Button 
+                                size="sm" 
+                                variant="default"
+                                onClick={() => handleAccessResource(resource)}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Access Now
+                              </Button>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleSaveForLater(resource)}
+                              >
+                                Remove
+                              </Button>
+                            </div>
                           </div>
                         </div>
-
-                        <div className="flex gap-2 mt-3">
-                          <Button 
-                            size="sm" 
-                            variant="default"
-                            onClick={() => handleAccessResource(savedResource)}
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            Access Now
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => {
-                              if (currentUser) {
-                                const storageKey = `savedResource_${currentUser.uid}`;
-                                localStorage.removeItem(storageKey);
-                                setSavedResource(null);
-                                toast.success('Resource removed from saved items');
-                              }
-                            }}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
               )}
 

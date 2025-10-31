@@ -14,7 +14,6 @@ import {
   BookOpen, 
   Users,
   Brain,
-  Settings,
   TrendingUp,
   LogIn
 } from 'lucide-react';
@@ -37,15 +36,10 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
     { id: 'crisis', label: 'Crisis Support', icon: AlertCircle, route: '/crisis-support' },
     { id: 'mood', label: 'Mood Analytics', icon: TrendingUp, route: '/mood-dashboard' },
     { id: 'learning', label: 'Resources', icon: BookOpen, route: '/resources' },
-  { id: 'groups', label: 'Peer Groups', icon: Users, badge: 'Explore', external: true, href: 'https://discord.gg/THdJJrxnCS' },
+    { id: 'groups', label: 'Peer Groups', icon: Users, badge: 'Join Discord', external: true, href: 'https://discord.gg/THdJJrxnCS' },
   ];
 
   const handleItemClick = (item: any) => {
-    if (item.badge === 'Explore' && !item.external) {
-      // Handle coming soon features
-      return;
-    }
-
     if (item.id === 'home' || item.route === '/') {
       // Handle Home button - always scroll to top smoothly
       if (location.pathname === '/') {
@@ -119,23 +113,19 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
             {navigationItems.map((item) => {
               const Icon = item.icon;
               const isActive = isCurrentPage(item.route) || activeSection === item.id;
-              const isDisabled = item.badge === 'Explore' && !item.external;
               
               return (
                 <Button
                   key={item.id}
                   variant={isActive ? "default" : "ghost"}
                   onClick={() => handleItemClick(item)}
-                  className={`relative flex items-center space-x-2 h-10 px-4 ${
-                    isDisabled ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  disabled={isDisabled}
+                  className="relative flex items-center space-x-2 h-10 px-4"
                 >
                   <Icon className="h-4 w-4" />
                   <span className="hidden lg:inline">{item.label}</span>
                   {item.badge && (
                     <Badge 
-                      variant={item.badge === 'Explore' ? "outline" : "secondary"}
+                      variant="secondary"
                       className="absolute -top-1 -right-1 text-xs px-1 py-0"
                     >
                       {item.badge}
@@ -149,36 +139,16 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
           {/* Auth & Settings Buttons */}
           <div className="hidden lg:flex items-center space-x-2">
             {currentUser ? (
-              <>
-                <UserProfile />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => navigate('/settings')}
-                  className="rounded-full"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </>
+              <UserProfile />
             ) : (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/login')}
-                  className="flex items-center space-x-2"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>Sign In</span>
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => navigate('/settings')}
-                  className="rounded-full"
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/login')}
+                className="flex items-center space-x-2"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Sign In</span>
+              </Button>
             )}
           </div>
 
@@ -207,23 +177,19 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                   const isActive = isCurrentPage(item.route) || activeSection === item.id;
-                  const isDisabled = item.badge === 'Explore' && !item.external;
                 
                 return (
                   <Button
                     key={item.id}
                     variant={isActive ? "default" : "ghost"}
                     onClick={() => handleItemClick(item)}
-                    className={`relative w-full justify-start space-x-3 h-12 ${
-                        isDisabled ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
-                    disabled={isDisabled}
+                    className="relative w-full justify-start space-x-3 h-12"
                   >
                     <Icon className="h-5 w-5" />
                     <span>{item.label}</span>
                     {item.badge && (
                       <Badge 
-                        variant={item.badge === 'Explore' ? "outline" : "secondary"}
+                        variant="secondary"
                         className="ml-auto"
                       >
                         {item.badge}
@@ -233,8 +199,8 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
                 );
               })}
               
-              <div className="pt-2 border-t border-border space-y-2">
-                {!currentUser && (
+              {!currentUser && (
+                <div className="pt-2 border-t border-border">
                   <Button
                     variant="ghost"
                     onClick={() => {
@@ -246,19 +212,8 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
                     <LogIn className="h-5 w-5" />
                     <span>Sign In</span>
                   </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    navigate('/settings');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full justify-start space-x-3 h-12"
-                >
-                  <Settings className="h-5 w-5" />
-                  <span>Settings</span>
-                </Button>
-              </div>
+                </div>
+              )}
 
             </div>
           </div>

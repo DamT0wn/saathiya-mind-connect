@@ -241,7 +241,7 @@ const MoodDashboard = () => {
               </div>
             </div>
             <div className="ml-auto flex items-center gap-3">
-              <Badge>Available Now</Badge>
+              <Badge>Connect Now</Badge>
               <Button onClick={() => setShowMoodTracker(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Entry
@@ -313,23 +313,7 @@ const MoodDashboard = () => {
 
         {activeTab === 'trends' && (
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <LineChart className="h-5 w-5" />
-                  Mood Trends
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 flex items-center justify-center text-muted-foreground">
-                  <div className="text-center">
-                    <LineChart className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>Detailed trend analysis will appear here</p>
-                    <p className="text-sm">Based on your mood entries over time</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <MoodAnalytics onClose={() => {}} modal={false} />
           </div>
         )}
 

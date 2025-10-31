@@ -91,6 +91,35 @@ export function MoodAnalytics({ onClose, modal = true }: MoodAnalyticsProps) {
     .sort(([,a], [,b]) => b - a)
     .slice(0, 5), [triggerCounts]);
 
+  // Calculate mood trend (only show after 4 entries)
+  const moodTrend = useMemo(() => {
+    console.log('Calculating mood trend. Mood history length:', moodHistory.length);
+    if (moodHistory.length < 4) {
+      console.log('Not enough entries for trend analysis');
+      return null;
+    }
+    
+    // Get the last 4 entries
+    const recentMoods = moodHistory.slice(-4);
+    const firstTwo = recentMoods.slice(0, 2);
+    const lastTwo = recentMoods.slice(-2);
+    
+    const avgFirst = firstTwo.reduce((sum, mood) => sum + mood.intensity, 0) / firstTwo.length;
+    const avgLast = lastTwo.reduce((sum, mood) => sum + mood.intensity, 0) / lastTwo.length;
+    
+    const difference = avgLast - avgFirst;
+    
+    const trend = {
+      direction: difference > 0.5 ? 'improving' : difference < -0.5 ? 'declining' : 'stable',
+      difference: Math.abs(difference).toFixed(1),
+      avgFirst: avgFirst.toFixed(1),
+      avgLast: avgLast.toFixed(1)
+    };
+    
+    console.log('Trend calculated:', trend);
+    return trend;
+  }, [moodHistory]);
+
   function getFactorIcon(factor: string) {
     switch (factor) {
       case 'sleep': return '😴';
@@ -170,9 +199,9 @@ export function MoodAnalytics({ onClose, modal = true }: MoodAnalyticsProps) {
               
               <Card className="p-4">
                 <div className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-primary" />
+                  <BarChart3 className="h-5 w-5 text-blue-600" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Avg Intensity</p>
+                    <p className="text-sm text-muted-foreground">Weekly Pattern</p>
                     <p className="text-2xl font-bold">
                       {(moodHistory.reduce((sum, mood) => sum + mood.intensity, 0) / moodHistory.length).toFixed(1)}
                     </p>
@@ -204,6 +233,78 @@ export function MoodAnalytics({ onClose, modal = true }: MoodAnalyticsProps) {
                 </div>
               </Card>
             </div>
+
+            {/* Mood Trend Section - Only show after 4 entries */}
+            {moodTrend ? (
+              <Card className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200">
+                <div className="flex items-center gap-3 mb-3">
+                  {moodTrend.direction === 'improving' && (
+                    <TrendingUp className="h-6 w-6 text-green-600" />
+                  )}
+                  {moodTrend.direction === 'declining' && (
+                    <TrendingDown className="h-6 w-6 text-red-600" />
+                  )}
+                  {moodTrend.direction === 'stable' && (
+                    <Activity className="h-6 w-6 text-blue-600" />
+                  )}
+                  <h3 className="text-lg font-semibold">
+                    {moodTrend.direction === 'improving' && '📈 Your Mood is Improving!'}
+                    {moodTrend.direction === 'declining' && '📉 Your Mood Needs Attention'}
+                    {moodTrend.direction === 'stable' && '📊 Your Mood is Stable'}
+                  </h3>
+                </div>
+                <div className="space-y-2 text-sm">
+                  <p className="text-muted-foreground">
+                    Based on your last 4 mood entries:
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 mt-3">
+                    <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground">Earlier Average</p>
+                      <p className="text-2xl font-bold">{moodTrend.avgFirst}/10</p>
+                    </div>
+                    <div className="bg-white/50 dark:bg-black/20 rounded-lg p-3">
+                      <p className="text-xs text-muted-foreground">Recent Average</p>
+                      <p className="text-2xl font-bold">{moodTrend.avgLast}/10</p>
+                    </div>
+                  </div>
+                  <p className="mt-3">
+                    {moodTrend.direction === 'improving' && (
+                      <span className="text-green-700 dark:text-green-400 font-medium">
+                        Great progress! Your mood has improved by {moodTrend.difference} points. Keep up the good work! 🎉
+                      </span>
+                    )}
+                    {moodTrend.direction === 'declining' && (
+                      <span className="text-red-700 dark:text-red-400 font-medium">
+                        Your mood has decreased by {moodTrend.difference} points. Consider reaching out for support or trying wellness exercises.
+                      </span>
+                    )}
+                    {moodTrend.direction === 'stable' && (
+                      <span className="text-blue-700 dark:text-blue-400 font-medium">
+                        Your mood has remained relatively stable. Keep maintaining your current wellness practices!
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              <Card className="p-6 bg-muted/30 border-dashed">
+                <div className="flex items-center gap-3 mb-3">
+                  <TrendingUp className="h-6 w-6 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold text-muted-foreground">Trend Analysis Coming Soon</h3>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Detailed trend analysis will appear here based on your mood entries over time.
+                  </p>
+                  <p className="text-sm font-medium text-primary">
+                    📊 Track {4 - moodHistory.length} more mood{4 - moodHistory.length !== 1 ? 's' : ''} to unlock trend insights
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Keep logging your moods to see patterns and track your emotional wellbeing journey!
+                  </p>
+                </div>
+              </Card>
+            )}
 
             {/* Mood Trend Chart */}
             <Card className="p-6">
