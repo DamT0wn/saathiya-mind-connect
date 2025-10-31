@@ -9,12 +9,7 @@ export function HeroSection() {
   const location = useLocation();
 
   const handleStartChat = () => {
-    // If a floating chat button is present, trigger it. Otherwise navigate to the ai chat page.
-    const chatButton = document.querySelector('[data-floating-chat]');
-    if (chatButton) {
-      (chatButton as HTMLElement).click();
-      return;
-    }
+    // Directly navigate to AI chat page
     navigate('/ai-chat');
   };
 

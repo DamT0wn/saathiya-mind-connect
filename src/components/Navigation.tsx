@@ -91,7 +91,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
+    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -109,8 +109,8 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
               <Brain className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Saathi</h1>
-              <p className="text-xs text-gray-500">Mind Connect</p>
+              <h1 className="text-xl font-bold text-foreground">Saathi</h1>
+              <p className="text-xs text-muted-foreground">Mind Connect</p>
             </div>
           </div>
 
@@ -154,7 +154,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onSectionClick('settings')}
+                  onClick={() => navigate('/settings')}
                   className="rounded-full"
                 >
                   <Settings className="h-4 w-4" />
@@ -173,7 +173,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onSectionClick('settings')}
+                  onClick={() => navigate('/settings')}
                   className="rounded-full"
                 >
                   <Settings className="h-4 w-4" />
@@ -202,7 +202,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-200 py-4">
+          <div className="lg:hidden border-t border-border py-4 bg-background">
             <div className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
@@ -233,7 +233,7 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
                 );
               })}
               
-              <div className="pt-2 border-t border-gray-200 space-y-2">
+              <div className="pt-2 border-t border-border space-y-2">
                 {!currentUser && (
                   <Button
                     variant="ghost"
@@ -249,7 +249,10 @@ export function Navigation({ onSectionClick, activeSection = 'home' }: Navigatio
                 )}
                 <Button
                   variant="ghost"
-                  onClick={() => onSectionClick('settings')}
+                  onClick={() => {
+                    navigate('/settings');
+                    setIsMobileMenuOpen(false);
+                  }}
                   className="w-full justify-start space-x-3 h-12"
                 >
                   <Settings className="h-5 w-5" />

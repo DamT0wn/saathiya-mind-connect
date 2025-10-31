@@ -126,28 +126,28 @@ export function AdvancedMoodTracker({ onSave, onClose }: AdvancedMoodTrackerProp
   };
 
   return (
-    <Card className="p-6 max-w-2xl mx-auto">
-      <div className="space-y-6">
+    <Card className="p-4 sm:p-6 max-w-2xl mx-auto border-0 shadow-none">
+      <div className="space-y-4 sm:space-y-6">
         <div className="text-center">
-          <h3 className="text-xl font-semibold mb-2">How are you feeling?</h3>
-          <p className="text-sm text-muted-foreground">
+          <h3 className="text-lg sm:text-xl font-semibold mb-2">How are you feeling?</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Take a moment to check in with yourself
           </p>
         </div>
 
         {/* Primary Mood Selection */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">Primary Mood *</label>
-          <div className="grid grid-cols-3 gap-2">
+        <div className="space-y-2 sm:space-y-3">
+          <label className="text-xs sm:text-sm font-medium">Primary Mood *</label>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {moodOptions.map((mood) => (
               <Button
                 key={mood.name}
                 variant={selectedMood === mood.name ? "default" : "outline"}
-                className="h-auto py-3 flex-col gap-1"
+                className="h-auto py-2 sm:py-3 flex-col gap-1 text-xs sm:text-sm"
                 onClick={() => handleMoodSelect(mood.name)}
               >
-                <span className="text-xl">{mood.emoji}</span>
-                <span className="text-xs">{mood.name}</span>
+                <span className="text-lg sm:text-xl">{mood.emoji}</span>
+                <span className="text-[10px] sm:text-xs">{mood.name}</span>
               </Button>
             ))}
           </div>
@@ -155,8 +155,8 @@ export function AdvancedMoodTracker({ onSave, onClose }: AdvancedMoodTrackerProp
 
         {/* Intensity Slider */}
         {selectedMood && (
-          <div className="space-y-3">
-            <label className="text-sm font-medium">
+          <div className="space-y-2 sm:space-y-3">
+            <label className="text-xs sm:text-sm font-medium">
               Intensity: {intensity[0]} - {getIntensityLabel(intensity[0])}
             </label>
             <Slider
@@ -167,7 +167,7 @@ export function AdvancedMoodTracker({ onSave, onClose }: AdvancedMoodTrackerProp
               step={1}
               className="w-full"
             />
-            <div className="flex justify-between text-xs text-muted-foreground">
+            <div className="flex justify-between text-[10px] sm:text-xs text-muted-foreground">
               <span>Very Low</span>
               <span className={getIntensityColor(intensity[0])}>
                 {getIntensityLabel(intensity[0])}
@@ -178,9 +178,9 @@ export function AdvancedMoodTracker({ onSave, onClose }: AdvancedMoodTrackerProp
         )}
 
         {/* Secondary Emotions */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">Secondary Emotions (optional)</label>
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-2 sm:space-y-3">
+          <label className="text-xs sm:text-sm font-medium">Secondary Emotions (optional)</label>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {moodOptions
               .filter(mood => mood.name !== selectedMood)
               .slice(0, 8)
@@ -188,7 +188,7 @@ export function AdvancedMoodTracker({ onSave, onClose }: AdvancedMoodTrackerProp
                 <Badge
                   key={mood.name}
                   variant={secondaryEmotions.includes(mood.name) ? "default" : "outline"}
-                  className="cursor-pointer"
+                  className="cursor-pointer text-[10px] sm:text-xs px-2 py-1"
                   onClick={() => handleSecondaryEmotion(mood.name)}
                 >
                   {mood.emoji} {mood.name}
@@ -198,15 +198,15 @@ export function AdvancedMoodTracker({ onSave, onClose }: AdvancedMoodTrackerProp
         </div>
 
         {/* Life Factors */}
-        <div className="space-y-4">
-          <label className="text-sm font-medium">Life Factors (1-10)</label>
+        <div className="space-y-3 sm:space-y-4">
+          <label className="text-xs sm:text-sm font-medium">Life Factors (1-10)</label>
           {lifeFactors.map((factor) => (
-            <div key={factor.key} className="space-y-2">
+            <div key={factor.key} className="space-y-1.5 sm:space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm">
+                <span className="text-xs sm:text-sm">
                   {factor.icon} {factor.label}
                 </span>
-                <span className="text-sm font-medium">
+                <span className="text-xs sm:text-sm font-medium">
                   {factors[factor.key as keyof typeof factors]}
                 </span>
               </div>
@@ -223,14 +223,14 @@ export function AdvancedMoodTracker({ onSave, onClose }: AdvancedMoodTrackerProp
         </div>
 
         {/* Triggers */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">What might have triggered this mood?</label>
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-2 sm:space-y-3">
+          <label className="text-xs sm:text-sm font-medium">What might have triggered this mood?</label>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {commonTriggers.map((trigger) => (
               <Badge
                 key={trigger}
                 variant={triggers.includes(trigger) ? "default" : "outline"}
-                className="cursor-pointer"
+                className="cursor-pointer text-[10px] sm:text-xs px-2 py-1"
                 onClick={() => handleTriggerToggle(trigger)}
               >
                 {trigger}
@@ -240,14 +240,14 @@ export function AdvancedMoodTracker({ onSave, onClose }: AdvancedMoodTrackerProp
         </div>
 
         {/* Activities */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">What have you been doing today?</label>
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-2 sm:space-y-3">
+          <label className="text-xs sm:text-sm font-medium">What have you been doing today?</label>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {commonActivities.map((activity) => (
               <Badge
                 key={activity}
                 variant={activities.includes(activity) ? "default" : "outline"}
-                className="cursor-pointer"
+                className="cursor-pointer text-[10px] sm:text-xs px-2 py-1"
                 onClick={() => handleActivityToggle(activity)}
               >
                 {activity}
@@ -257,25 +257,26 @@ export function AdvancedMoodTracker({ onSave, onClose }: AdvancedMoodTrackerProp
         </div>
 
         {/* Notes */}
-        <div className="space-y-3">
-          <label className="text-sm font-medium">Additional Notes (optional)</label>
+        <div className="space-y-2 sm:space-y-3">
+          <label className="text-xs sm:text-sm font-medium">Additional Notes (optional)</label>
           <Textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="How are you feeling? What's on your mind?"
             rows={3}
+            className="text-xs sm:text-sm resize-none"
           />
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3">
-          <Button onClick={onClose} variant="outline" className="flex-1">
+        <div className="flex gap-2 sm:gap-3 pt-2">
+          <Button onClick={onClose} variant="outline" className="flex-1 text-xs sm:text-sm">
             Cancel
           </Button>
           <Button 
             onClick={handleSave} 
             disabled={!selectedMood}
-            className="flex-1"
+            className="flex-1 text-xs sm:text-sm"
           >
             Save Mood Check-in
           </Button>

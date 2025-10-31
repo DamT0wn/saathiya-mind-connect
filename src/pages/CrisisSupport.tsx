@@ -41,32 +41,40 @@ const CrisisSupport = () => {
 
   const emergencyContacts = [
     {
-      name: "KIRAN National Helpline",
-      number: "1800-599-0019",
-      description: "24/7 free mental health support in multiple languages",
-      type: "National",
-      availability: "24/7"
-    },
-    {
-      name: "Vandrevala Foundation",
-      number: "9999-666-555",
-      description: "24/7 confidential helpline for mental health support",
-      type: "Private",
-      availability: "24/7"
-    },
-    {
-      name: "Sumaitri",
-      number: "011-23389090",
-      description: "Delhi-based suicide prevention helpline",
-      type: "Regional",
-      availability: "2 PM - 10 PM"
-    },
-    {
       name: "AASRA",
-      number: "022-27546669",
-      description: "Mumbai-based 24x7 suicide prevention helpline",
-      type: "Regional",
+      number: "022-2754-6669",
+      telNumber: "02227546669",
+      description: "Mumbai-based 24/7 suicide prevention and mental health helpline",
+      website: "https://www.aasra.info/",
+      type: "Crisis Support",
       availability: "24/7"
+    },
+    {
+      name: "iCALL (TISS)",
+      number: "022-2552-1111",
+      telNumber: "02225521111",
+      description: "Professional counseling and psychological support by TISS",
+      website: "https://icallhelpline.org/",
+      type: "Counseling",
+      availability: "Monday-Saturday, 8 AM - 10 PM"
+    },
+    {
+      name: "Muktaa Charitable Foundation",
+      number: "788-788-9882",
+      telNumber: "7887889882",
+      description: "Mental health support and counseling services",
+      website: "https://mcf.org.in/",
+      type: "Support Services",
+      availability: "Call for timings"
+    },
+    {
+      name: "Parivarthan Counselling",
+      number: "7676602602",
+      telNumber: "7676602602",
+      description: "Professional counseling, training, and research centre",
+      website: "https://parivarthan.org/",
+      type: "Counseling Centre",
+      availability: "Call for timings"
     }
   ];
 

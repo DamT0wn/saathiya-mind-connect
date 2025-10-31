@@ -49,6 +49,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('User signed in:', user.email);
       } else {
         console.log('User signed out');
+        // Clear onboarding flags when user signs out
+        localStorage.removeItem('hasSeenWelcome');
+        localStorage.removeItem('hasCompletedMoodCheckIn');
       }
     });
 
@@ -117,6 +120,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      // Clear onboarding flags on logout
+      localStorage.removeItem('hasSeenWelcome');
+      localStorage.removeItem('hasCompletedMoodCheckIn');
       await signOut(auth);
       console.log('Sign-out successful');
     } catch (error) {
