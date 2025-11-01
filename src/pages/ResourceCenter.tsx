@@ -207,7 +207,6 @@ const ResourceCenter = () => {
                 <p className="text-muted-foreground">Educational content and therapeutic exercises</p>
               </div>
             </div>
-            <Badge className="ml-auto">Connect Now</Badge>
           </div>
 
           {/* Search and Filter */}

@@ -241,7 +241,6 @@ const MoodDashboard = () => {
               </div>
             </div>
             <div className="ml-auto flex items-center gap-3">
-              <Badge>Connect Now</Badge>
               <Button onClick={() => setShowMoodTracker(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Entry

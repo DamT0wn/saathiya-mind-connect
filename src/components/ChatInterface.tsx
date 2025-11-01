@@ -340,23 +340,61 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
     });
   };
 
-  const toggleVoiceInput = () => {
-    setIsListening(!isListening);
-    
-    if (!isListening && voiceInput.isSupported()) {
-      voiceInput.startListening(
-        (text) => {
-          setInputValue(text);
-          setIsListening(false);
-        },
-        (error) => {
-          console.error('Voice input error:', error);
-          setIsListening(false);
-        }
-      );
-    } else {
+  const toggleVoiceInput = async () => {
+    if (isListening) {
+      // Stop listening
       voiceInput.stopListening();
+      setIsListening(false);
+      return;
     }
+
+    // Check if voice input is supported
+    if (!voiceInput.isSupported()) {
+      alert('Voice input is not supported in this browser. Please use Chrome, Edge, or Safari for voice features.');
+      return;
+    }
+
+    // Start listening
+    setIsListening(true);
+    
+    await voiceInput.startListening(
+      (text) => {
+        // Update input value with transcribed text
+        setInputValue(text);
+        console.log('Transcribed text:', text);
+      },
+      (error) => {
+        console.error('Voice input error:', error);
+        setIsListening(false);
+        
+        // Show user-friendly error message (but not for user-initiated stops)
+        if (error.includes('permission')) {
+          alert('Microphone access is required for voice input. Please allow microphone permissions in your browser settings and try again.');
+        } else if (error.includes('not supported')) {
+          alert('Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.');
+        } else if (!error.includes('aborted') && !error.includes('No speech')) {
+          // Don't show alerts for aborted or no speech errors
+          alert(error);
+        }
+      }
+    );
+    
+    // Monitor recognition status and update UI accordingly
+    const checkRecognitionStatus = setInterval(() => {
+      if (!voiceInput.getIsListening() && isListening) {
+        setIsListening(false);
+        clearInterval(checkRecognitionStatus);
+      }
+    }, 100);
+    
+    // Auto-stop after 30 seconds max to prevent infinite listening
+    setTimeout(() => {
+      clearInterval(checkRecognitionStatus);
+      if (isListening && voiceInput.getIsListening()) {
+        voiceInput.stopListening();
+        setIsListening(false);
+      }
+    }, 30000);
   };
 
   // Setup keyboard navigation
@@ -696,15 +734,16 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
                   onClick={toggleVoiceInput}
                   variant={isListening ? "default" : "outline"}
                   size="icon"
-                  className="shrink-0"
+                  className={`shrink-0 ${isListening ? 'animate-pulse bg-red-500 hover:bg-red-600' : ''}`}
                   disabled={!voiceInput.isSupported()}
-                  aria-label={isListening ? "Stop voice input" : "Start voice input"}
+                  aria-label={isListening ? "Stop voice input - Click to stop recording" : "Start voice input - Click to record"}
+                  title={isListening ? "Recording... Click to stop" : "Click to start voice input"}
                 >
                   {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </Button>
                 <Input
                   ref={inputRef}
-                  placeholder="Type your message... (Hindi/English welcome)"
+                  placeholder={isListening ? "Listening... Speak now" : "Type your message... (Hindi/English welcome)"}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
@@ -716,10 +755,19 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
                   variant="chat"
                   size="chat"
                   disabled={!inputValue.trim() || state.isTyping}
+                  aria-label="Send message"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
+
+              {/* Voice Input Helper */}
+              {voiceInput.isSupported() && (
+                <div className="mt-2 text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
+                  <Mic className="h-3 w-3" />
+                  <span>Voice input supported in English & Hindi - Click the mic to speak</span>
+                </div>
+              )}
 
               {/* Context Info */}
               {state.context.currentMood.primary !== 'neutral' && (

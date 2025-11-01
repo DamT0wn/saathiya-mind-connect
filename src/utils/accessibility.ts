@@ -12,6 +12,9 @@ export class VoiceInputManager {
   private isListening = false;
   private onResult: ((text: string) => void) | null = null;
   private onError: ((error: string) => void) | null = null;
+  private language: string = 'en-IN'; // Default to Indian English
+  private silenceTimer: NodeJS.Timeout | null = null;
+  private finalTranscript: string = '';
 
   constructor() {
     // Check if speech recognition is supported
@@ -26,36 +29,142 @@ export class VoiceInputManager {
   private setupRecognition() {
     if (!this.recognition) return;
 
-    this.recognition.continuous = false;
-    this.recognition.interimResults = false;
-    this.recognition.lang = 'en-US'; // Can be changed to 'hi-IN' for Hindi
+    this.recognition.continuous = true; // Enable continuous listening
+    this.recognition.interimResults = true; // Show interim results for better UX
+    this.recognition.maxAlternatives = 1;
+    this.recognition.lang = this.language;
 
     this.recognition.onstart = () => {
       this.isListening = true;
+      this.finalTranscript = '';
+      console.log('Voice recognition started');
     };
 
-    this.recognition.onresult = (event) => {
-      const result = event.results[0][0].transcript;
-      if (this.onResult) {
+    this.recognition.onresult = (event: any) => {
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          this.finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      // Clear existing silence timer
+      if (this.silenceTimer) {
+        clearTimeout(this.silenceTimer);
+      }
+
+      // Show interim or accumulated final transcript
+      const result = (this.finalTranscript + interimTranscript).trim();
+      if (this.onResult && result) {
         this.onResult(result);
       }
+
+      // If we have a final result, set a timer to auto-stop after silence
+      if (this.finalTranscript.trim()) {
+        this.silenceTimer = setTimeout(() => {
+          console.log('Silence detected, stopping recognition');
+          this.stopListening();
+        }, 1500); // Stop after 1.5 seconds of silence
+      }
     };
 
-    this.recognition.onerror = (event) => {
+    this.recognition.onerror = (event: any) => {
+      console.error('Voice recognition error:', event.error);
+      
+      // Don't show error for no-speech if we already have some transcript
+      if (event.error === 'no-speech') {
+        console.log('No speech detected, stopping gracefully');
+        this.stopListening();
+        return;
+      }
+      
+      let errorMessage = 'Voice recognition error';
+      switch (event.error) {
+        case 'audio-capture':
+          errorMessage = 'Microphone not found. Please check your device settings.';
+          break;
+        case 'not-allowed':
+          errorMessage = 'Microphone permission denied. Please allow microphone access.';
+          break;
+        case 'network':
+          errorMessage = 'Network error. Please check your connection.';
+          break;
+        case 'aborted':
+          // Don't show error for aborted, it's usually user-initiated
+          console.log('Voice recognition aborted');
+          this.isListening = false;
+          return;
+        default:
+          errorMessage = `Voice recognition error: ${event.error}`;
+      }
+      
       if (this.onError) {
-        this.onError(event.error);
+        this.onError(errorMessage);
       }
       this.isListening = false;
+    };
+
+    this.recognition.onspeechend = () => {
+      console.log('Speech ended');
+      // Recognition will stop automatically after speech ends
     };
 
     this.recognition.onend = () => {
       this.isListening = false;
+      console.log('Voice recognition ended');
+      
+      // Clear any remaining silence timer
+      if (this.silenceTimer) {
+        clearTimeout(this.silenceTimer);
+        this.silenceTimer = null;
+      }
     };
   }
 
-  public startListening(onResult: (text: string) => void, onError?: (error: string) => void) {
+  public setLanguage(lang: 'en-IN' | 'hi-IN' | 'en-US') {
+    this.language = lang;
+    if (this.recognition) {
+      this.recognition.lang = lang;
+    }
+  }
+
+  public async requestPermission(): Promise<boolean> {
+    try {
+      // Check if navigator.mediaDevices is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.error('getUserMedia not supported');
+        return false;
+      }
+
+      // Request microphone permission
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Stop the stream immediately as we only needed permission
+      stream.getTracks().forEach(track => track.stop());
+      
+      return true;
+    } catch (error) {
+      console.error('Microphone permission denied:', error);
+      return false;
+    }
+  }
+
+  public async startListening(onResult: (text: string) => void, onError?: (error: string) => void) {
     if (!this.recognition) {
-      if (onError) onError('Speech recognition not supported');
+      const errorMsg = 'Speech recognition not supported in this browser. Please use Chrome, Edge, or Safari.';
+      if (onError) onError(errorMsg);
+      return;
+    }
+
+    // Request permission first
+    const hasPermission = await this.requestPermission();
+    if (!hasPermission) {
+      const errorMsg = 'Microphone access denied. Please allow microphone permissions in your browser settings.';
+      if (onError) onError(errorMsg);
       return;
     }
 
@@ -65,7 +174,8 @@ export class VoiceInputManager {
     try {
       this.recognition.start();
     } catch (error) {
-      if (onError) onError('Failed to start speech recognition');
+      console.error('Failed to start speech recognition:', error);
+      if (onError) onError('Failed to start voice recognition. Please try again.');
     }
   }
 
@@ -81,6 +191,14 @@ export class VoiceInputManager {
 
   public getIsListening(): boolean {
     return this.isListening;
+  }
+
+  public getSupportedLanguages(): Array<{ code: string; name: string }> {
+    return [
+      { code: 'en-IN', name: 'English (India)' },
+      { code: 'hi-IN', name: 'Hindi (India)' },
+      { code: 'en-US', name: 'English (US)' }
+    ];
   }
 }
 

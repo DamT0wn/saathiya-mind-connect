@@ -18,7 +18,7 @@ const features = [
     icon: MessageCircle,
     title: "AI Chatbot",
     description: "AI-powered companion accessible from anywhere on the site with instant support and guidance. Advanced sentiment analysis with empathetic responses in Hindi and English.",
-    badge: "Connect Now",
+    badge: "Available",
     color: "bg-primary",
     status: "available",
     route: "/ai-chat"
@@ -27,7 +27,7 @@ const features = [
     icon: AlertCircle,
     title: "Crisis Support",
     description: "24/7 emergency detection with immediate access to professional helplines (KIRAN: 1800-599-0019) and crisis intervention.",
-    badge: "Connect Now",
+    badge: "Available",
     color: "bg-destructive",
     status: "available",
     route: "/crisis-support"
@@ -36,7 +36,7 @@ const features = [
     icon: BookOpen,
     title: "Micro-Learning & Skills",
     description: "Bite-sized mental health education, coping strategies, and skill-building exercises tailored for Indian youth.",
-    badge: "Connect Now",
+    badge: "Available",
     color: "bg-wellness-calm",
     status: "available",
     route: "/resources"
@@ -177,7 +177,7 @@ export function Features({ onFeatureClick }: FeaturesProps) {
           <div className="bg-muted/30 rounded-lg p-4 inline-flex items-center gap-6">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-              <span className="text-sm">Connect Now</span>
+              <span className="text-sm">All Features Available</span>
             </div>
           </div>
         </div>

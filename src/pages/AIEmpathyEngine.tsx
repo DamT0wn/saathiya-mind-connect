@@ -103,7 +103,6 @@ const AIEmpathyEngine = () => {
                 <p className="text-muted-foreground">Advanced conversational AI for mental wellness</p>
               </div>
             </div>
-            <Badge className="ml-auto">Connect Now</Badge>
           </div>
 
           {/* Feature Grid */}
