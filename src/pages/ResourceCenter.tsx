@@ -6,15 +6,12 @@ import { AdvancedMoodTracker } from "@/components/AdvancedMoodTracker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
   BookOpen, 
-  Search,
   ArrowLeft,
   Play,
   Clock,
   Star,
-  Filter,
   Heart,
   Brain,
   Lightbulb,
@@ -56,7 +53,6 @@ const ResourceCenter = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState('videos');
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
   const [showMoodTracker, setShowMoodTracker] = useState(false);
   const [showThoughtJournal, setShowThoughtJournal] = useState(false);
@@ -207,22 +203,6 @@ const ResourceCenter = () => {
                 <p className="text-muted-foreground">Educational content and therapeutic exercises</p>
               </div>
             </div>
-          </div>
-
-          {/* Search and Filter */}
-          <div className="flex items-center gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search resources, exercises, or topics..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </div>
