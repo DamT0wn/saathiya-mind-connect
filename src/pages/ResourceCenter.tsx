@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigation } from "@/components/Navigation";
 import { ResourceLibrary } from "@/components/ResourceLibrary";
 import { ExercisePlayer } from "@/components/ExercisePlayer";
@@ -23,7 +23,7 @@ import {
   Zap,
   Youtube
 } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const VideoContent = [
   {
@@ -54,12 +54,22 @@ const VideoContent = [
 
 const ResourceCenter = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('videos');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedExercise, setSelectedExercise] = useState<any>(null);
   const [showMoodTracker, setShowMoodTracker] = useState(false);
   const [showThoughtJournal, setShowThoughtJournal] = useState(false);
   const [showSupportNetwork, setShowSupportNetwork] = useState(false);
+
+  // Check URL parameters for tab activation
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get('tab');
+    if (tab && ['videos', 'exercises', 'wellness'].includes(tab)) {
+      setActiveTab(tab);
+    }
+  }, [location.search]);
 
   const handleSectionClick = (section: string) => {
     if (section === 'home') {
@@ -418,14 +428,14 @@ const ResourceCenter = () => {
                   
                   <div className="p-6 border rounded-lg text-center hover:shadow-medium transition-all">
                     <Users className="h-8 w-8 mx-auto mb-3 text-wellness-energy" />
-                    <h3 className="font-semibold mb-2">Support Network</h3>
-                    <p className="text-sm text-muted-foreground mb-4">Connect with peers and professionals</p>
+                    <h3 className="font-semibold mb-2">Peer Groups</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Connect with peers on Discord</p>
                     <Button 
                       variant="outline" 
                       className="w-full"
-                      onClick={() => setShowSupportNetwork(true)}
+                      onClick={() => window.open('https://discord.gg/THdJJrxnCS', '_blank', 'noopener noreferrer')}
                     >
-                      Find Support
+                      Join Discord
                     </Button>
                   </div>
                 </div>
@@ -631,13 +641,13 @@ const ResourceCenter = () => {
                   <CardContent className="space-y-3">
                     <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-semibold">Student Mental Health Community</h4>
+                        <h4 className="font-semibold">Saathi Peer Groups</h4>
                         <Badge>Active</Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">Connect with students facing similar challenges</p>
+                      <p className="text-sm text-muted-foreground mb-3">Connect with peers and share your mental wellness journey</p>
                       <Button 
                         size="sm" 
-                        onClick={() => window.open('https://discord.gg/67meY4hr', '_blank', 'noopener')}
+                        onClick={() => window.open('https://discord.gg/THdJJrxnCS', '_blank', 'noopener noreferrer')}
                       >
                         Join on Discord
                       </Button>

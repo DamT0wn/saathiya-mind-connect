@@ -115,14 +115,16 @@ const CrisisSupport = () => {
       title: "Breathing Exercises",
       description: "Immediate grounding techniques to manage panic and anxiety",
       color: "bg-wellness-calm",
-      action: () => navigate('/resources') // Navigate to Resource Center where exercises are
+      action: () => {
+        navigate('/resources?tab=exercises');
+      }
     },
     {
       icon: Users,
       title: "Support Network",
       description: "Connect with trusted friends, family, or support groups",
       color: "bg-wellness-energy",
-      action: () => navigate('/ai-chat') // Navigate to AI Chat for support
+      action: () => window.open('https://discord.gg/THdJJrxnCS', '_blank', 'noopener noreferrer') // Navigate to Discord Peer Groups
     },
     {
       icon: BookOpen,

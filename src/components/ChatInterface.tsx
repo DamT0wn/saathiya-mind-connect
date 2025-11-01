@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Send, Bot, User, Heart, AlertCircle, Brain, Smile, Activity, BookOpen, Mic, MicOff, Settings, Trash2, ArrowUp, Volume2 } from "lucide-react";
 import chatbotAvatar from "@/assets/chatbot-avatar.png";
 import { useChatContext } from "@/contexts/ChatContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { ExercisePlayer } from "./ExercisePlayer";
 import { AdvancedMoodTracker } from "./AdvancedMoodTracker";
 import { ResourceLibrary } from "./ResourceLibrary";
@@ -24,6 +25,7 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
   const { state, addMessage, updateMood, setTyping, clearMessages } = useChatContext();
+  const { currentUser } = useAuth();
   const [inputValue, setInputValue] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [showExercisePlayer, setShowExercisePlayer] = useState(false);
@@ -537,8 +539,17 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
                             <Bot className="w-4 h-4 text-white" />
                           </div>
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-                            <User className="w-4 h-4 text-white" />
+                          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center overflow-hidden">
+                            {currentUser?.photoURL ? (
+                              <img 
+                                src={currentUser.photoURL} 
+                                alt={currentUser.displayName || "User"}
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            ) : (
+                              <User className="w-4 h-4 text-white" />
+                            )}
                           </div>
                         )}
                       </div>
