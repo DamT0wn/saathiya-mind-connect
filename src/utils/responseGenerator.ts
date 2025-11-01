@@ -174,24 +174,31 @@ export class IntelligentResponseGenerator {
     try {
       // Import the sendMessageToGemini function dynamically
       const { sendMessageToGemini } = await import('./gemini');
-      aiResponseText = await sendMessageToGemini(userMessage, this.conversationHistory);
-    } catch (error) {
-      console.error('Direct Gemini call failed:', error);
       
-      // Check if it's an API permission error
+      console.log('🔄 ResponseGenerator: Calling Gemini API...');
+      aiResponseText = await sendMessageToGemini(userMessage, this.conversationHistory);
+      console.log('✅ ResponseGenerator: Got response:', aiResponseText.substring(0, 50) + '...');
+      
+      // The gemini.ts module now handles all errors internally and returns backup responses
+      // So if we get here, we have a valid response (either from Gemini or backup system)
+      
+    } catch (error) {
+      console.error('❌ ResponseGenerator: Unexpected error from Gemini module:', error);
+      
+      // Only critical configuration errors should reach here now
       if (error && typeof error === 'object' && 'message' in error) {
         const errorMessage = String(error.message);
+        
         if (errorMessage.includes('API Setup Required') || errorMessage.includes('SERVICE_DISABLED')) {
-          aiResponseText = "🔧 मुझे सक्रिय करने के लिए: Google Cloud Console में जाकर Generative Language API को enable करें। फिर वापस आएं।";
-        } else if (errorMessage.includes('Invalid API Key') || errorMessage.includes('VITE_GEMINI_API_KEY')) {
-          aiResponseText = "❌ Configuration issue. Please check the setup and try again.";
-        } else if (errorMessage.includes('Model Error')) {
-          aiResponseText = "🤖 AI model temporarily unavailable. This will be resolved automatically. Please try again in a moment.";
+          aiResponseText = "🔧 Setup needed: Please enable Generative Language API in Google Cloud Console. Visit /diagnostics for help.";
+        } else if (errorMessage.includes('Invalid API Key') || errorMessage.includes('VITE_GEMINI_API_KEY is not set')) {
+          aiResponseText = "❌ Configuration issue: API key is invalid or missing. Visit /diagnostics for help.";
         } else {
-          aiResponseText = "Namaste. I'm sorry, my connection is unstable right now. Please call a helpline (1800-599-0019) if you need immediate support, or try chatting again in a moment. Dhanyawad.";
+          // Fallback to a helpful message
+          aiResponseText = "Namaste! मैं आपकी मदद करने के लिए यहाँ हूं। If you need immediate support, please call KIRAN Helpline: 1800-599-0019 (24x7). क्या आप मुझे बता सकते हैं कि आप कैसा महसूस कर रहे हैं?";
         }
       } else {
-        aiResponseText = "Namaste. I'm sorry, my connection is unstable right now. Please call a helpline (1800-599-0019) if you need immediate support, or try chatting again in a moment. Dhanyawad.";
+        aiResponseText = "Namaste! मैं आपकी मदद करने के लिए यहाँ हूं। Please feel free to share what's on your mind. आप safe space में हैं। 🤗";
       }
     }
 

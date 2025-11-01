@@ -99,63 +99,71 @@ async function tryDirectAPICall(prompt: string): Promise<string> {
 }
 
 export async function sendMessageToGemini(prompt: string, history: Message[] = []): Promise<string> {
-  console.log('🔍 Starting Gemini API call...');
-  console.log('API Key present:', !!API_KEY);
-  console.log('API Key starts with:', API_KEY ? API_KEY.substring(0, 8) + '...' : 'undefined');
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('🔍 GEMINI API DIAGNOSTIC CALL - START');
+  console.log('═══════════════════════════════════════════════════════');
+  console.log('⏰ Timestamp:', new Date().toISOString());
+  console.log('📝 Prompt Length:', prompt.length, 'characters');
+  console.log('🔑 API Key Status:');
+  console.log('   → Present:', !!API_KEY);
+  console.log('   → Length:', API_KEY?.length || 0, 'characters');
+  console.log('   → First 20 chars:', API_KEY?.substring(0, 20) + '...' || 'undefined');
+  console.log('───────────────────────────────────────────────────────');
   
   if (!API_KEY) {
+    console.error('❌ CRITICAL: API Key is missing!');
     throw new Error('VITE_GEMINI_API_KEY is not set in environment');
   }
 
   // Try direct API call first (more reliable)
   try {
-    console.log('📝 Trying direct API approach...');
+    console.log('📝 Strategy 1: Trying direct REST API approach...');
     const result = await tryDirectAPICall(prompt);
-    console.log('✅ Got response from direct API:', result.substring(0, 50) + '...');
+    console.log('✅ SUCCESS with direct API!');
+    console.log('═══════════════════════════════════════════════════════');
     return result;
   } catch (directError) {
-    console.warn('❌ Direct API failed, trying Google SDK:', directError);
+    console.warn('❌ Direct API failed completely');
+    console.warn('Error:', directError);
+    console.log('───────────────────────────────────────────────────────');
+    console.log('📝 Strategy 2: Trying Google SDK approach...');
   }
 
   // Fallback to Google SDK
   const genAI = new GoogleGenerativeAI(API_KEY);
   
   try {
-    // Add context to the prompt instead of using system instruction
     const contextualPrompt = `You are Saathiya, an empathetic AI companion for Indian youth. Respond supportively and briefly to: ${prompt}`;
-    console.log('📝 Sending prompt via SDK:', contextualPrompt.substring(0, 50) + '...');
+    console.log('📝 SDK Prompt preview:', contextualPrompt.substring(0, 100) + '...');
     
     const result = await tryModelWithFallback(genAI, contextualPrompt);
-    console.log('✅ Got response from SDK:', result.substring(0, 50) + '...');
+    console.log('✅ SUCCESS with Google SDK!');
+    console.log('═══════════════════════════════════════════════════════');
     return result;
     
   } catch (error) {
-    console.error('❌ Gemini API call failed:', error);
-    console.error('Error type:', typeof error);
+    console.error('═══════════════════════════════════════════════════════');
+    console.error('🔴 BOTH API STRATEGIES FAILED - Using Backup Responses');
+    console.error('═══════════════════════════════════════════════════════');
     
-    // More detailed error handling
-    if (error && typeof error === 'object') {
-      const errorStr = JSON.stringify(error, null, 2);
-      console.error('Full error details:', errorStr);
+    // Check for critical configuration errors that should be thrown
+    if (error && typeof error === 'object' && 'message' in error) {
+      const errorMessage = String(error.message);
       
-      if ('message' in error) {
-        const errorMessage = String(error.message);
-        console.error('Error message:', errorMessage);
-        
-        if (errorMessage.includes('SERVICE_DISABLED') || errorMessage.includes('not been used in project')) {
-          throw new Error('🔧 API Setup Required: Go to https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com and click "Enable"');
-        }
-        if (errorMessage.includes('API_KEY_INVALID') || errorMessage.includes('invalid')) {
-          throw new Error('❌ Invalid API Key: Check your .env.local file');
-        }
-        if (errorMessage.includes('All AI models are currently unavailable')) {
-          throw new Error('❌ Model Error: AI models are temporarily unavailable. This will be resolved automatically.');
-        }
+      if (errorMessage.includes('SERVICE_DISABLED') || errorMessage.includes('not been used in project')) {
+        console.error('🔧 DIAGNOSIS: API Not Enabled');
+        throw new Error('🔧 API Setup Required: Go to https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com and click "Enable"');
+      }
+      
+      if (errorMessage.includes('API_KEY_INVALID') || errorMessage.includes('invalid')) {
+        console.error('🔑 DIAGNOSIS: Invalid API Key');
+        throw new Error('❌ Invalid API Key: Check your .env.local file');
       }
     }
     
-    // If all else fails, use a backup response system
-    console.log('🔄 Using backup response system...');
+    // For all other errors (including model unavailability), use backup responses
+    console.log('🔄 FALLBACK: Using backup response system');
+    console.log('═══════════════════════════════════════════════════════');
     return getBackupResponse(prompt);
   }
 }
