@@ -14,11 +14,40 @@ import { ResourceLibrary } from "./ResourceLibrary";
 import { MoodAnalytics } from "./MoodAnalytics";
 import { AccessibilityPanel } from "./AccessibilityPanel";
 import { responseGenerator } from "@/utils/responseGenerator";
+import { detectLanguage } from "@/utils/languageDetection";
+import { SupportedLanguage } from "@/types/chat";
 import { getExerciseById, getRecommendedExercises } from "@/data/exercises";
 import { analyzeSentiment, getSentimentLabel } from "@/utils/sentimentAnalysis";
+import { detectCrisis } from '@/utils/crisisDetection';
 import { voiceInput, textToSpeech, keyboardNav } from "@/utils/accessibility";
 import { Message, MoodEntry } from "@/types/chat";
-
+import { useNavigate } from 'react-router-dom';
+// Inline CrisisSupportPopup component to avoid a missing-module error.
+// This lightweight modal matches the usage in this file and can be
+// replaced by a dedicated component file later if desired.
+const CrisisSupportPopup = ({ onClose, onGotoCrisis }: { onClose: () => void; onGotoCrisis: () => void }) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Crisis support dialog">
+      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
+      <div className="bg-background dark:bg-slate-800 rounded-lg shadow-lg z-10 max-w-md w-full p-6">
+        <div className="flex items-center gap-3">
+          <AlertCircle className="h-6 w-6 text-warning" />
+          <h3 className="text-lg font-semibold">Crisis Support</h3>
+        </div>
+        <p className="mt-3 text-sm text-muted-foreground">
+          If you are in immediate danger or thinking of harming yourself, please contact local emergency services or use the helpline below.
+        </p>
+        <p className="mt-3 text-sm text-muted-foreground">
+          <strong>KIRAN: 1800-599-0019</strong>
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+          <Button onClick={onGotoCrisis}>Go to Crisis Support</Button>
+        </div>
+      </div>
+    </div>
+  );
+};
 interface ChatInterfaceProps {
   isFullScreen?: boolean;
 }
@@ -27,6 +56,7 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
   const { state, addMessage, updateMood, setTyping, clearMessages } = useChatContext();
   const { currentUser } = useAuth();
   const [inputValue, setInputValue] = useState("");
+  const [lastUserLanguage, setLastUserLanguage] = useState<SupportedLanguage>('en');
   const [isListening, setIsListening] = useState(false);
   const [showExercisePlayer, setShowExercisePlayer] = useState(false);
   const [showMoodTracker, setShowMoodTracker] = useState(false);
@@ -36,9 +66,11 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
   const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [voicesLoaded, setVoicesLoaded] = useState(false);
+  const [showCrisisPopup, setShowCrisisPopup] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   // Load speech synthesis voices
   useEffect(() => {
@@ -219,20 +251,56 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
+    // Detect language of user input before storing message
+    const detectedLang = detectLanguage(inputValue);
+    setLastUserLanguage(detectedLang);
+
     // Add user message
     addMessage({
       content: inputValue,
       sender: "user",
-      type: "text"
+      type: "text",
+      language: detectedLang
     });
 
     const userInput = inputValue;
     setInputValue("");
     setTyping(true);
 
+    // --- Crisis detection logic (runs when a new user message is sent) ---
+    try {
+      const existingUserMessages = state.messages.filter((m) => m.sender === 'user').length;
+      const userMessageCountThisSession = existingUserMessages + 1; // include the one we just sent
+
+      console.log('[ChatInterface] Running crisis detection for:', userInput);
+      console.log('[ChatInterface] User message count:', userMessageCountThisSession);
+
+      // Delegate to the centralized crisis detector util. It returns whether the popup
+      // should be shown based on regex word-boundary matching, allowlist and severity.
+      const detection = await detectCrisis(userInput, userMessageCountThisSession);
+      console.log('[ChatInterface] Detection result:', detection);
+
+      // Always show popup (or redirect for fail-safe) on every trigger; removed one-time session gating.
+      if (detection.shouldShowPopup) {
+        console.log('[ChatInterface] SHOWING CRISIS POPUP (multi-trigger enabled)');
+        if (detection.reason === 'fail-safe') {
+          // Use popup instead of auto navigation to keep consistent UX; comment line below to re-enable direct redirect.
+          // navigate('/crisis-support'); return;
+          setShowCrisisPopup(true);
+          setTyping(false);
+          return;
+        }
+        setShowCrisisPopup(true);
+        setTyping(false);
+        return;
+      }
+    } catch (e) {
+      console.error('Error running crisis detection:', e);
+    }
+
     try {
       // Generate intelligent response
-      const response = await responseGenerator.generateResponse(userInput);
+      const response = await responseGenerator.generateResponse(userInput, lastUserLanguage);
       
       // Simulate typing delay
       setTimeout(() => {
@@ -241,6 +309,7 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
           sender: "bot",
           type: "text",
           sentiment: response.sentiment,
+          language: lastUserLanguage,
           metadata: {
             followUpRequired: !!response.followUp,
             priority: response.riskLevel === 'critical' ? 'urgent' : 
@@ -254,7 +323,8 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
             addMessage({
               content: response.followUp!,
               sender: "bot",
-              type: "text"
+              type: "text",
+              language: lastUserLanguage
             });
             setTyping(false);
           }, 1500);
@@ -475,6 +545,16 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
 
   return (
     <section className={isFullScreen ? "h-full bg-background" : "py-20 bg-background"} ref={chatContainerRef}>
+      {/* Crisis support modal (renders on top when triggered) */}
+      {showCrisisPopup && (
+        <CrisisSupportPopup
+          onClose={() => setShowCrisisPopup(false)}
+          onGotoCrisis={() => {
+            setShowCrisisPopup(false);
+            navigate('/crisis-support');
+          }}
+        />
+      )}
       <div className={isFullScreen ? "container mx-auto px-4 h-full" : "container mx-auto px-4"}>
         {!isFullScreen && (
           <div className="text-center mb-12">
@@ -743,7 +823,7 @@ export function ChatInterface({ isFullScreen = false }: ChatInterfaceProps) {
                 </Button>
                 <Input
                   ref={inputRef}
-                  placeholder={isListening ? "Listening... Speak now" : "Type your message... (Hindi/English welcome)"}
+                  placeholder={isListening ? "Listening... Speak now" : "Type your message... (English / हिन्दी / ಕನ್ನಡ / தமிழ்)"}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}

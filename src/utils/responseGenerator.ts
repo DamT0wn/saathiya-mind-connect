@@ -1,5 +1,6 @@
-import { ResponseTemplate, Message, ConversationContext, SentimentScore } from '@/types/chat';
+import { ResponseTemplate, Message, ConversationContext, SentimentScore, SupportedLanguage } from '@/types/chat';
 import { analyzeSentiment, detectCrisisKeywords, getDominantEmotion, getRiskLevel } from './sentimentAnalysis';
+import { translateResponsePackage } from './translate';
 
 export const responseTemplates: ResponseTemplate[] = [
   // Crisis Response
@@ -143,7 +144,7 @@ export class IntelligentResponseGenerator {
     return { suggestedExercises, suggestedResources };
   }
 
-  async generateResponse(userMessage: string): Promise<{
+  async generateResponse(userMessage: string, targetLanguage: SupportedLanguage = 'en'): Promise<{
     response: string;
     followUp?: string;
     suggestedExercises?: string[];
@@ -151,6 +152,34 @@ export class IntelligentResponseGenerator {
     riskLevel: 'low' | 'moderate' | 'high' | 'critical';
     sentiment: SentimentScore;
   }> {
+    const raw = userMessage.trim();
+    const lower = raw.toLowerCase();
+
+    // Fast-path greeting detection with native language responses to avoid mixed fallback
+    const greetingTokens = ['hi','hello','hey','namaste','नमस्ते','नमस्कार','ನಮಸ್ಕಾರ','namaskara','vanakkam','வணக்கம்'];
+    const isGreetingOnly = greetingTokens.includes(lower) || /^(?:hey|hello|hi|namaste|नमस्ते|नमस्कार|ನಮಸ್ಕಾರ|namaskara|vanakkam|வணக்கம்)[!.,]*$/.test(lower);
+    if (isGreetingOnly) {
+      const greetingMap: Record<SupportedLanguage,string> = {
+        en: 'Hello! I am here to support you. How are you feeling today?',
+        hi: 'नमस्ते! मैं आपकी सहायता के लिए यहाँ हूँ। आज आप कैसा महसूस कर रहे हैं?',
+        kn: 'ನಮಸ್ಕಾರ! ನಿಮ್ಮನ್ನು ಬೆಂಬಲಿಸಲು ನಾನು ಇಲ್ಲಿದ್ದೇನೆ. ಇಂದು ನೀವು ಹೇಗಿದ್ದೀರಿ?',
+        ta: 'வணக்கம்! உங்களுக்கு ஆதரவாக நான் இருக்கிறேன். இன்று எப்படி உணர்கிறீர்கள்?' 
+      };
+      const followUpMap: Record<SupportedLanguage,string> = {
+        en: 'Feel free to share anything on your mind.',
+        hi: 'अपने मन की कोई भी बात निःसंकोच साझा करें।',
+        kn: 'ನಿಮ್ಮ ಮನದಲ್ಲಿರುವ ಯಾವುದನ್ನಾದರೂ ಹಂಚಿಕೊಳ್ಳಿ.',
+        ta: 'உங்கள் மனதில் உள்ளதைத் தாராளமாக பகிர்ந்து கொள்ளுங்கள்.'
+      };
+      return {
+        response: greetingMap[targetLanguage],
+        followUp: followUpMap[targetLanguage],
+        suggestedExercises: [],
+        suggestedResources: [],
+        riskLevel: 'low',
+        sentiment: analyzeSentiment(userMessage)
+      };
+    }
     // Analyze sentiment
     const sentiment = analyzeSentiment(userMessage);
     const riskLevel = getRiskLevel(sentiment, userMessage);
@@ -159,13 +188,14 @@ export class IntelligentResponseGenerator {
     if (riskLevel === 'critical' || detectCrisisKeywords(userMessage)) {
       const crisisTemplate = this.templates.find(t => t.id === 'crisis-suicide');
       if (crisisTemplate) {
-        return {
+        const pkg = {
           response: this.selectResponse(crisisTemplate.responses),
           followUp: this.selectResponse(crisisTemplate.followUp || []),
           suggestedResources: crisisTemplate.resources,
-          riskLevel: 'critical',
+          riskLevel: 'critical' as const,
           sentiment
         };
+        return translateResponsePackage(pkg, targetLanguage);
       }
     }
 
@@ -205,14 +235,15 @@ export class IntelligentResponseGenerator {
     // --- ACCESSORY FEATURES (Exercises/Resources) ---
     const { suggestedExercises, suggestedResources } = this.findSuggestedMetadata(userMessage, riskLevel);
 
-    return {
+    const pkg = {
       response: aiResponseText,
-      followUp: undefined, // Gemini handles the flow now
+      followUp: undefined as string | undefined, // Gemini handles the flow now
       suggestedExercises,
       suggestedResources,
       riskLevel,
       sentiment
     };
+    return translateResponsePackage(pkg, targetLanguage);
   }
 
   private findBestMatchingTemplate(userMessage: string, sentiment: SentimentScore, dominantEmotion: string): ResponseTemplate | null {

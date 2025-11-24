@@ -7,6 +7,8 @@ export interface Message {
   sentiment?: SentimentScore;
   type?: MessageType;
   metadata?: MessageMetadata;
+  // Detected language for this message. Supported: English, Hindi, Kannada, Tamil.
+  language?: SupportedLanguage;
 }
 
 export interface SentimentScore {
@@ -34,7 +36,7 @@ export interface MessageMetadata {
 export interface UserProfile {
   id: string;
   name?: string;
-  preferredLanguage: 'en' | 'hi' | 'both';
+  preferredLanguage: SupportedLanguage | 'both';
   timezone: string;
   goals: string[];
   triggers: string[];
@@ -130,7 +132,12 @@ export interface ChatState {
   showMoodTracker: boolean;
   showResources: boolean;
   isVoiceMode: boolean;
+  // Last detected user language (session-level) to guide response generation
+  lastUserLanguage?: SupportedLanguage;
 }
+
+// Central language union for reuse
+export type SupportedLanguage = 'en' | 'hi' | 'kn' | 'ta';
 
 export interface ResponseTemplate {
   id: string;
